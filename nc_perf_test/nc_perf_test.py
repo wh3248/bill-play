@@ -1,3 +1,4 @@
+import sys
 import os
 import time
 import parflow as pf
@@ -110,7 +111,18 @@ def read_pfb_files(input_dir):
     # 25.5- seconds for 8 features (COLD) sum = 3393428073.4289017
     # 10.5- seconds for 8 features (HOT)  sum = 3393428073.4289017
 
-#create_test_data(OUT_DIR)
-read_nc_file(OUT_DIR)
-#read_pfb_files(OUT_DIR)
+def run():
+    if len(sys.argv) <= 1:
+        print("Usage: nc_perf_test [create | pfb | nc]")
+        sys.exit(0)
+    if sys.argv[1] == "create":
+        create_test_data(OUT_DIR)
+    elif sys.argv[1] == 'nc':
+        read_nc_file(OUT_DIR)
+    elif sys.argv[1] == 'pfb':
+        read_pfb_files(OUT_DIR)
+    else:
+        print("You must specify 'create', 'nc' or 'pfb' as command line argument")
+
+run()
 
