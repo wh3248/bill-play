@@ -87,7 +87,7 @@ def read_nc_file(output_dir):
         s = data.to_numpy().sum()
         sum_s = sum_s + s
     duration = time.time() - start_time
-    print(f"Read {outfile_name} in {duration} seconds total sum = {sum_s} of 8 values {s} each")
+    print(f"Read 8 variables from {outfile_name} in {duration} seconds total sum = {sum_s}")
     # 2.0 seconds for 8 features (Hot) sum = 3393428073.428895
     # 2.2 seconds for 8 features (Cold) sum = 3393428073.428895
     # 
@@ -107,7 +107,7 @@ def read_pfb_files(input_dir):
         n_files = len(file_names)
         sum_s = sum_s + s
     duration = time.time() - start_time
-    print(f"Read 8 * 59 PFB files in {duration} seconds total sum = {sum_s} of 8 values {s} each")
+    print(f"Read 8 * 60 PFB files in {duration} seconds total sum = {sum_s}")
     # 25.5- seconds for 8 features (COLD) sum = 3393428073.4289017
     # 10.5- seconds for 8 features (HOT)  sum = 3393428073.4289017
 
