@@ -1,5 +1,14 @@
 """
 Mapping from WGS84 lat/lon coordindates to Conus1/Conus2 coordindates using Geodesic mapping.
+
+You must call the method to load the grid->WGS84 map files before calling the method to map points.
+Call the load_maps method with the parameter either 'conus1' or 'conus2' then call either
+map_to_wgs84() or map_to_grid(). For example,
+
+    mapping = WGS84Mapping()
+    mapping.load_maps('conus1')
+    (x, y) = mapping.map_to_grid(-112.07, 40.62)
+    Will return x = 538, y = 904.
 """
 
 import parflow as pf
