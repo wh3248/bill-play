@@ -87,7 +87,7 @@ class WGS84Mapping:
         """Compute the distance between two lat/lon points using geodesic distance"""
 
         p = math.pi/180
-        earth_diameter = 12742 # in meters
+        earth_diameter = 12742 # in kilo meters
         hav = 0.5 - np.cos((lat2-lat1)*p)/2 + np.cos(lat1*p)*np.cos(lat2*p) * (1-np.cos((lon2-lon1)*p)) / 2
         return earth_diameter * np.arcsin(np.sqrt(hav))
 
