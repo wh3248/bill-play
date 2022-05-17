@@ -44,8 +44,22 @@ def compare_domain_answer(domain_state_path):
     print("Map back")
     print(map_back)
 
+def test_bosie_idaho():
+    """Test Boise idaho"""
+
+
+    wgs84_mapping = WGS84Mapping()
+    wgs84_mapping.load_maps("conus1")
+    lon =  -116.70570364923688
+    lat = 43.48253132247869
+    point = wgs84_mapping.map_to_grid(lon, lat)
+    print(point)
+    point = wgs84_mapping.map_to_wgs84(point[0], point[1])
+    print(point)
+
 # Compare the grid bounds from a hydrogen domain path to test the mapping algorithm
-compare_domain_answer("/home/HYDROAPP/bill/wh3248/bill2/domain_state.json")
+#compare_domain_answer("/home/HYDROAPP/bill/wh3248/bill2/domain_state.json")
+test_bosie_idaho()
 
 
     

@@ -5,8 +5,10 @@ import parflow as pf
 from parflow.tools.io import read_pfb, write_pfb
 import numpy as np
 import xarray as xr
+import dask
 
-OUT_DIR = "/hydrodata/temp/file_performance_testing/pfb_test8"
+OUT_DIR = "/home/HYDROAPP/common/test/nc_perf_test"
+#OUT_DIR = "/hydrodata/temp/file_performance_testing/pfb_test8"
 
 def create_test_data(output_dir):
     """Create test data in output_dir with 60 PRB files for 8 features and one features.nc file"""
@@ -17,6 +19,7 @@ def create_test_data(output_dir):
 
     # Subset the files to size sg_nx,sg_ny
     sg_nx = 500
+
     sg_ny = 500
     sg_nz = 5
     sg_x = 150
@@ -93,10 +96,10 @@ def read_nc_file(output_dir):
     # 
 
 def read_pfb_files(input_dir):
-    out_features = ["Temp", "APCP", "Press", "VGRD", "UGRD", "DSWR", "DLWR", "SPFH"]
     s = 0
     sum_s = 0
     start_time = time.time()
+    out_features = ["Temp", "APCP", "Press", "VGRD", "UGRD", "DSWR", "DLWR", "SPFH"]
     for feature in out_features:
         file_names = []
         for f in os.listdir(input_dir):
@@ -111,9 +114,61 @@ def read_pfb_files(input_dir):
     # 25.5- seconds for 8 features (COLD) sum = 3393428073.4289017
     # 10.5- seconds for 8 features (HOT)  sum = 3393428073.4289017
 
+
+def read_pfb_feature_files(input_dir, feature):
+    s = 0
+    sum_s = 0
+    start_time = time.time()
+    file_names = []
+    for f in os.listdir(input_dir):
+        if feature in f and f.endswith(".pfb"):
+            file_names.append(os.path.join(input_dir, f))
+    data = pf.read_pfb_sequence(file_names)
+    s = data.sum()
+    n_files = len(file_names)
+    sum_s = sum_s + s
+    duration = time.time() - start_time
+    message = f"Load '{n_files}' in {duration} seconds."
+
+    return {"status": "success", "message" : message, "sum_s": sum_s}
+
+def collect_status(status_list):
+    """Collect the status return results from a list of parallel jobs."""
+
+    sum_s = 0
+    results = []
+    for status in status_list:
+        if status.get("status", None) != "success":
+            results.append(status.get("message", "No message"))
+        else:
+            message = status.get("message", None)
+            if message:
+                results.append(message)
+            s = status.get("sum_s")
+            sum_s = sum_s + s
+    return (results, sum_s)
+
+def run_parallel_job():
+    """Run a collection of calls to copy_file in parallel."""
+
+    out_features = ["Temp", "APCP", "Press", "VGRD", "UGRD", "DSWR", "DLWR", "SPFH"]
+    start = time.time()
+    p_read_pfb_feature_files = dask.delayed(read_pfb_feature_files)
+    p_collect_status = dask.delayed(collect_status)
+    status = []
+    n = 0
+    for f in out_features:
+        status.append(p_read_pfb_feature_files(OUT_DIR, f))
+
+    (collected_status, sum_s) = p_collect_status(status).compute(num_workers=8)
+    duration = time.time() - start
+    print("\n".join(collected_status))
+    print(f"Ran parallel job in {duration} seconds with check_sum {sum_s}")
+
+
 def run():
     if len(sys.argv) <= 1:
-        print("Usage: nc_perf_test [create | pfb | nc]")
+        print("Usage: nc_perf_test [create | pfb | nc | dask]")
         sys.exit(0)
     if sys.argv[1] == "create":
         create_test_data(OUT_DIR)
@@ -121,6 +176,8 @@ def run():
         read_nc_file(OUT_DIR)
     elif sys.argv[1] == 'pfb':
         read_pfb_files(OUT_DIR)
+    elif sys.argv[1] == 'dask':
+        run_parallel_job()
     else:
         print("You must specify 'create', 'nc' or 'pfb' as command line argument")
 
