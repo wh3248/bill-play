@@ -1,10 +1,10 @@
 import sys
 import os
 import time
-import dask
 import xarray as xr
 
-def load_files(water_year, test_number):
+def load_files(water_year):
+    test_number = 1
     start_time = time.time()
     metadata_list = os.path.abspath(f"/hydrodata/forcing/processed_data/CONUS1/NLDAS2/daily/./conus1_nldas_daily_{water_year}.pfmetadata")
     metadata_list = metadata_list.replace("{KEY1}", str(water_year))
@@ -27,16 +27,14 @@ def load_files(water_year, test_number):
     duration = round(time.time() - start_time, 1)
     print(f"Loaded {n} PFB files in {duration} seconds for test #{test_number}.")
 
-
 def main():
-    if len(sys.argv) < 3:
+    if len(sys.argv) < 2:
         print()
-        print("Usage: python hydrodata_test <year> <n>")
+        print("Usage: python hydrodata_test <year>")
         print("   where <year> is between 2003 - 2006")
-        print("     and <n> is a test number between 1-10")
-        print("   for example, python hydrodata_test 2003 1")
+        print("   for example, python xr_test 2003")
         sys.exit(0)
     water_year = sys.argv[1]
-    load_files(water_year, 1)
+    load_files(int(water_year))
 
 main()
