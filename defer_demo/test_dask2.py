@@ -1,6 +1,7 @@
 from dask.distributed import dask, Client as DaskClient
 import time
 import dask
+from threading import Thread
 
 DASK_CLIENT = None
 
@@ -12,7 +13,6 @@ def get_dask_client():
 
 def first_task(arg):
     print("First task")
-    time.sleep(1)
     result = arg
     return result
 
@@ -29,7 +29,6 @@ def collect_runs(scenario_id):
 
 def scenario_task(scenario_id):
     print(f"scenaro task {scenario_id}")
-    time.sleep(1)
     collect_runs(scenario_id)
     print(f"scenaro task done {scenario_id}")
 
@@ -49,7 +48,21 @@ def run_group():
     group_list.append(client.submit(run_job))
     group_list.append(client.submit(run_job))
 
+def main_delayed():
+    dask_results = []
+    dask_results.append(dask.delayed(run_job))
+    dask.delayed(lambda x:x)(dask_results).compute()
+
+def main_thread():
+    threads = []
+    for i in range(0, 2):
+        thread = Thread(target=run_job)
+        thread.start()
+        threads.append(thread)
+    for thread in threads:
+        thread.join()
+    
 if __name__ == "__main__":
-    get_dask_client()
-    run_job()
+    #get_dask_client()
+    main_thread()
     print("All done")
