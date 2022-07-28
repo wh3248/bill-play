@@ -24,16 +24,13 @@ def load_files(metadata_file, water_year):
     print(f"Loaded PFB files in {duration} seconds.")
 
 def main():
-    print("Start")
-    print(len(sys.argv))
     if len(sys.argv) < 3:
         print()
-        print("Usage: python hydrodata_test <year> [hydrodata | scratch]")
-        print("   where <year> is between 2003 - 2006")
+        print("Usage: python hydrodata_test <year> [<filetype>]")
+        print("   where <year> is between 2003 - 2006 and <filetype> is hydrodata or scratch")
         print("   for example, python xr_test 2003")
         sys.exit(0)
     water_year = sys.argv[1]
-    print(water_year)
     file_source = sys.argv[2] if len(sys.argv) > 2 else "hydrodata"
     if file_source == "hydrodata":
         metadata_file = f"/hydrodata/forcing/processed_data/CONUS1/NLDAS2/daily/./conus1_nldas_daily_{water_year}.pfmetadata"
