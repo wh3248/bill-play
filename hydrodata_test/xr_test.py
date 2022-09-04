@@ -12,6 +12,7 @@ def load_files(metadata_file, water_year, test_number):
     xmax = xmin + 50
     ymax = ymin + 50
     grid_bounds = [xmin, ymin, xmax, ymax]
+    print(water_year)
     print(grid_bounds)
     start_temp = f"{water_year}-05-24"
     end_temp = f"{water_year}-08-21"
@@ -23,6 +24,7 @@ def load_files(metadata_file, water_year, test_number):
 
     duration = round(time.time() - start_time, 1)
     print(f"Loaded PFB files in {duration} seconds.")
+    print(ds_temp["Temp_mean"].shape)
 
 def main():
     if len(sys.argv) < 3:

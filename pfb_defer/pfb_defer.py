@@ -52,17 +52,16 @@ def run_parallel_job():
     p_subset_file = dask.delayed(subset_file)
     p_collect_status = dask.delayed(collect_status)
     status = []
-    input_dir = "/hydrodata/Forcing/processed_data/CONUS2/NLDAS3/WY2006"
+    input_dir = "/hydrodata/forcing/processed_data/CONUS1/NLDAS2/daily/WY2003"
     n = 0
     for f in os.listdir(input_dir):
         if "Temp" in f:
             status.append(p_subset_file(input_dir, f, grid_bounds))
             n = n + 1
-        if n >= 20:
+        if n >= 90:
             break
 
     collected_status = p_collect_status(status).compute(num_workers=6)
-    print(collected_status)
     duration = time.time() - start
     print(f"Ran parallel job in {duration} seconds.")
 
