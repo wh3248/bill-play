@@ -1,0 +1,4 @@
+docs/build/*
+**/__pycache__
+docs/source/modules.rst
+docs/source/projections.rst

@@ -1,0 +1,5 @@
+IPython
+mercantile
+sphinx>=1.8.5
+sphinx-rtd-theme
+sphinxcontrib-napoleon
