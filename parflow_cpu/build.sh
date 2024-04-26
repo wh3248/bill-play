@@ -7,8 +7,9 @@ module load cmake/3.18.2
 source pf_env.sh
 
 # Download and install HYPER
-mkdir -p $BASE/hypre
 export HYPRE_DIR=$BASE/hypre
+mkdir -p $HYPRE_DIR
+
 cd $HYPRE_DIR
 curl -L https://github.com/hypre-space/hypre/archive/v2.17.0.tar.gz | tar --strip-components=1 -xzv && \
 cd src && ./configure --prefix=$HYPRE_DIR --with-MPI && \
@@ -17,15 +18,13 @@ make install
 
 # Download and install ParFlow                                                                                                                    
 cd $BASE
-echo $BASE
-pwd
 git clone https://github.com/parflow/parflow.git
 cd parflow/
 mkdir build
 cd build/
 cmake .. \
       -DCMAKE_INSTALL_PREFIX=$PARFLOW_DIR             \
-      -DHYPRE_ROOT=$HYPRE_DIR                         \                                                                                     
+      -DHYPRE_ROOT=$HYPRE_DIR                         \
       -DPARFLOW_ENABLE_PYTHON=TRUE                    \
       -DPARFLOW_HAVE_CLM=TRUE                         \
       -DHYPRE_ROOT=./hypre                            \

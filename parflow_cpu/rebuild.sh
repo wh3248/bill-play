@@ -7,22 +7,21 @@ module load cmake/3.18.2
 source pf_env.sh
 
 # Download and install ParFlow                                                                                                                    
-cd $BASE
-cd parflow/
-mkdir build
-cd build/
+cd $BASE/parflow/build
 cmake .. \
-      -DCMAKE_C_FLAGS=-lcuda \
-      -DPARFLOW_ENABLE_PYTHON=TRUE \
-      -DPARFLOW_AMPS_LAYER=mpi1 \
-      -DPARFLOW_AMPS_SEQUENTIAL_IO=TRUE \
-      -DPARFLOW_ENABLE_TIMING=TRUE \
-      -DCMAKE_INSTALL_PREFIX=$PARFLOW_DIR \
-      -DPARFLOW_ACCELERATOR_BACKEND=cuda \
-      -DPARFLOW_HAVE_CLM=TRUE \
-      -DRMM_ROOT=$RMM_DIR
-#      -DHYPRE_ROOT=$HYPRE_DIR                                                                                                                    
-#      -DPARFLOW_ENABLE_HDF5=TRUE \     
+      -DCMAKE_INSTALL_PREFIX=$PARFLOW_DIR             \
+      -DHYPRE_ROOT=$HYPRE_DIR                         \
+      -DPARFLOW_ENABLE_PYTHON=TRUE                    \
+      -DPARFLOW_HAVE_CLM=TRUE                         \
+      -DHYPRE_ROOT=./hypre                            \
+      -DCMAKE_BUILD_TYPE=Release                      \
+      -DPARFLOW_AMPS_LAYER=mpi1                       \
+      -DPARFLOW_AMPS_SEQUENTIAL_IO=ON                 \
+      -DPARFLOW_ENABLE_HYPRE=ON                       \
+      -DPARFLOW_ENABLE_SIMULATOR=ON                   \
+      -DPARFLOW_ENABLE_SZLIB=ON                       \
+      -DPARFLOW_ENABLE_TOOLS=ON                       \
+      -DPARFLOW_ENABLE_ZLIB=ON
 
 make
 make install
