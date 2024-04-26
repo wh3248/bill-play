@@ -1,0 +1,34 @@
+Log files:
+    test_output/<job_name>.out.log
+    test_output/<job_name>.out.kinsol.Log
+    test_output/<job_name>.out.timings.csv
+    test_output/<job_name>.pfidb
+    test_output/<job_name>.out.txt
+Generated output from parflow run:
+    test_output/<job_name>.out.satur.<time>.pfb
+    test_output/<job_name>.out.press.<time>.pfb
+    test_output/<job_name>.out.perm_z.pfb
+    test_output/<job_name>.out.porosity.pfb
+    test_output/<job_name>.out.pftcl
+    test_output/<job_name>.out.mask.pfb
+    test_output/<job_name>.out.alpha.pfb
+    test_output/<job_name>.out.specific_storage.pfb
+    test_output/<job_name>.out.sres.pfb
+    test_output/<job_name>.out.ssat.pfb
+    test_output/<job_name>.out.velx.<time>.pfb
+    test_output/<job_name>.out.vely.<time>.pfb
+    test_output/<job_name>.out.velz.<time>.pfb
+
+Tracing Notes:
+    main()                                  parflow/pfsimulator/parflow_exe/main.c
+    NewLogging()                            parflow/pfsimulator/parflow_lib/logging.csv
+    solve()                                 parflow/pfsimulator/parflow_lib/solver.c
+    SetupRichards()                         parflow/pfsimulator/parflow_lib/solver_richards.c
+    amps_init()                             parflow/pfsimulator/amps/cuda
+
+
+Notes:
+    In CPU version calls SetupRichards once
+    Calls AdvanceRichards once
+    In CPU calls aps_Init in /pfsimulator/amps/mpi1
+    
