@@ -23,7 +23,7 @@ def main():
     (nz, ny, nx) = collect_static_inputs(huc_ids, parflow_output_dir)
 
     print("Collect forcing files...")
-    #collect_forcing(huc_ids, parflow_output_dir, start_time, end_time)
+    collect_forcing(huc_ids, parflow_output_dir, start_time, end_time)
 
     print(f"Run parflow on grid {nz}, {ny}, {nx}")
     parflow_run.ComputationalGrid.NX = nx
@@ -36,6 +36,7 @@ def main():
     parflow_run.TimingInfo.DumpInterval = 24.0
     parflow_run.Solver.MaxConvergenceFailures = 5
     parflow_run.Solver.BinaryOutDir= None
+    parflow_run.Solver.CLM.MetFileName = "CW3E"
 
     # Run parflow simulation
     parflow_run.run(parflow_output_dir)
