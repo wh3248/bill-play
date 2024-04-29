@@ -25,9 +25,9 @@ cd build/
 cmake .. \
       -DCMAKE_INSTALL_PREFIX=$PARFLOW_DIR             \
       -DHYPRE_ROOT=$HYPRE_DIR                         \
+      -DHYPRE_DIR=$HYPRE_DIR                         \
       -DPARFLOW_ENABLE_PYTHON=TRUE                    \
       -DPARFLOW_HAVE_CLM=TRUE                         \
-      -DHYPRE_ROOT=./hypre                            \
       -DCMAKE_BUILD_TYPE=Release                      \
       -DPARFLOW_AMPS_LAYER=mpi1                       \
       -DPARFLOW_AMPS_SEQUENTIAL_IO=ON                 \

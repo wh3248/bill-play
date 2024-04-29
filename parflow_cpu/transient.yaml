@@ -6,27 +6,42 @@ Cell:
       Value: 1.0
   '1':
     dzScale:
-      Value: 0.01
+      Value: 0.5
   '2':
     dzScale:
-      Value: 0.006
+      Value: 0.25
   '3':
     dzScale:
-      Value: 0.003
+      Value: 0.125
   '4':
     dzScale:
-      Value: 0.001
+      Value: 0.05
+  '5':
+    dzScale:
+      Value: 0.025
+  '6':
+    dzScale:
+      Value: 0.005
+  '7':
+    dzScale:
+      Value: 0.003
+  '8':
+    dzScale:
+      Value: 0.0015
+  '9':
+    dzScale:
+      Value: 0.0005
 ComputationalGrid:
   DX: 1000.0
   DY: 1000.0
-  DZ: 100.0
+  DZ: 200.0
   Lower:
     X: 0.0
     Y: 0.0
     Z: 0.0
-  NX: 3342
-  NY: 1888
-  NZ: 5
+  NX: 4442
+  NY: 3256
+  NZ: 10
 Contaminants:
   Names: ''
 Cycle:
@@ -38,13 +53,15 @@ Cycle:
       Length: 10000000
 Domain:
   GeomName: domain
+FBz:
+  Type: PFBFile
 FileVersion: 4
 Geom:
   Perm:
     Names: domain s1 s2 s3 s4 s5 s6 s7 s8 s9 s10 s11 s12 s13 g1 g2 g3 g4 g5 g6 g7
       g8 b1 b2
     TensorByGeom:
-      Names: domain
+      Names: domain b1 b2 g1 g2 g4 g5 g6 g7
   Porosity:
     GeomNames: domain s1 s2 s3 s4 s5 s6 s7 s8 s9 s10 s11 s12 s13 g1 g2 g3 g4 g5 g6
       g7 g8
@@ -52,13 +69,21 @@ Geom:
     GeomNames: ''
   b1:
     Perm:
+      TensorValX: 1.0
+      TensorValY: 1.0
+      TensorValZ: 0.1
       Type: Constant
       Value: 0.005
   b2:
     Perm:
+      TensorValX: 1.0
+      TensorValY: 1.0
+      TensorValZ: 0.1
       Type: Constant
       Value: 0.01
   domain:
+    FBz:
+      FileName: depth_to_bedrock.pfb
     ICPressure:
       FileName: press_init.pfb
       RefGeom: domain
@@ -91,11 +116,14 @@ Geom:
     SpecificStorage:
       Value: 0.0001
     Upper:
-      X: 3342000.0
-      Y: 1888000.0
-      Z: 500.0
+      X: 4442000.0
+      Y: 3256000.0
+      Z: 2000.0
   g1:
     Perm:
+      TensorValX: 1.0
+      TensorValY: 1.0
+      TensorValZ: 0.1
       Type: Constant
       Value: 0.02
     Porosity:
@@ -103,6 +131,9 @@ Geom:
       Value: 0.33
   g2:
     Perm:
+      TensorValX: 1.0
+      TensorValY: 1.0
+      TensorValZ: 0.1
       Type: Constant
       Value: 0.03
     Porosity:
@@ -117,6 +148,9 @@ Geom:
       Value: 0.33
   g4:
     Perm:
+      TensorValX: 1.0
+      TensorValY: 1.0
+      TensorValZ: 0.1
       Type: Constant
       Value: 0.05
     Porosity:
@@ -124,6 +158,9 @@ Geom:
       Value: 0.33
   g5:
     Perm:
+      TensorValX: 1.0
+      TensorValY: 1.0
+      TensorValZ: 0.1
       Type: Constant
       Value: 0.06
     Porosity:
@@ -131,6 +168,9 @@ Geom:
       Value: 0.33
   g6:
     Perm:
+      TensorValX: 1.0
+      TensorValY: 1.0
+      TensorValZ: 0.1
       Type: Constant
       Value: 0.08
     Porosity:
@@ -138,6 +178,9 @@ Geom:
       Value: 0.33
   g7:
     Perm:
+      TensorValX: 1.0
+      TensorValY: 1.0
+      TensorValZ: 0.1
       Type: Constant
       Value: 0.1
     Porosity:
@@ -294,7 +337,7 @@ Geom:
     Saturation:
       Alpha: 0.501
       N: 2.659
-      SRes: 0.1
+      SRes: 0.0001
       SSat: 1.0
   s5:
     Perm:
@@ -448,11 +491,8 @@ ICPressure:
   Type: PFBFile
 KnownSolution: NoKnownSolution
 Mannings:
-  Geom:
-    domain:
-      Value: 2.4e-06
-  GeomNames: domain
-  Type: Constant
+  FileName: mannings.pfb
+  Type: PFBFile
 Patch:
   xlower:
     BCPressure:
@@ -487,7 +527,7 @@ Patch:
   zupper:
     BCPressure:
       Cycle: constant
-      Type: OverlandFlow
+      Type: OverlandKinematic
       alltime:
         Value: 0.0
 Perm:
@@ -524,7 +564,7 @@ Process:
     R: 1
 Solver:
   AbsTol: 1.0e-09
-  #BinaryOutDir: false
+  BinaryOutDir: false
   CLM:
     CLMDumpInterval: 1
     CLMFileDir: ./
@@ -548,6 +588,7 @@ Solver:
     WriteLastRST: true
     WriteLogs: false
   Drop: 1.0e-30
+  EvapTransFile: false
   LSM: CLM
   Linear:
     KrylovDimension: 500
@@ -561,6 +602,7 @@ Solver:
     DerivativeEpsilon: 1.0e-16
     EtaChoice: EtaConstant
     EtaValue: 0.001
+    FlowBarrierZ: true
     Globalization: LineSearch
     MaxIter: 500
     ResidualTol: 1.0e-07
@@ -574,7 +616,9 @@ Solver:
   PrintSaturation: true
   PrintSubsurfData: true
   PrintVelocities: false
-  TerrainFollowingGrid: true
+  TerrainFollowingGrid:
+    SlopeUpwindFormulation: Upwind
+    _value_: true
   WriteCLMBinary: false
   WriteSiloCLM: false
   WriteSiloEvapTrans: false
@@ -613,4 +657,5 @@ Wells:
 dzScale:
   GeomNames: domain
   Type: nzList
-  nzListNumber: 5
+  nzListNumber: 10
+  
