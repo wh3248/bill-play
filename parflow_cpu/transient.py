@@ -37,7 +37,10 @@ def main():
     parflow_run.Solver.MaxConvergenceFailures = 5
     parflow_run.Solver.BinaryOutDir= None
     parflow_run.Solver.CLM.MetFileName = "CW3E"
-
+    parflow_run.Geom.domain.FBz.FileName = "pf_flowbarrier.pfb"
+    parflow_run.Geom.domain.ICPressure.FileName = "ss_pressure_head.pfb"
+    parflow_run.Geom.indi_input.FileName = "pf_indicator.pfb"
+    parflow_run.Mannings.FileName = "mannings.pfb"
     # Run parflow simulation
     parflow_run.run(parflow_output_dir)
 
@@ -45,20 +48,18 @@ def collect_static_inputs(huc_ids, parflow_output_dir):
     """Collect static input pfb input files from hf_hydrodata and subset to the huc_id list."""
 
     huc_id = ",".join(huc_ids)
-    # Create a rename map to rename files that do not have the same name as the variable
-    rename_map = {"ss_pressure_head": "press_init",
-                  "pf_flowbarrier": "depth_to_bedrock"}
 
     for variable in ["slope_x", "slope_y", "pf_indicator", "ss_pressure_head", "pme", "mannings", "pf_flowbarrier"]:
         filter_options = dict(dataset="conus2_domain", variable=variable, huc_id=huc_id)
         data = hf.get_gridded_data(filter_options)
-        parflow_variable_name = rename_map.get(variable) if rename_map.get(variable) else variable
         if len(data.shape) == 2:
             # PFB files require shape with 3 dimensions
             data = np.reshape(data, (1, data.shape[0], data.shape[1]))
 
-        pf.write_pfb(f"{parflow_output_dir}/{parflow_variable_name}.pfb", data, dist=True)
+        pf.write_pfb(f"{parflow_output_dir}/{variable}.pfb", data, dist=True)
         result = data.shape
+    
+    hf.get_raw_file(f"{parflow_output_dir}/drv_vegp.dat", dict(dataset="conus2_domain", variable="clm_run", file_type="vegp"));
     return result
 
 def collect_forcing(huc_ids, parflow_output_dir, start_time, end_time):
