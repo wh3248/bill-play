@@ -564,7 +564,7 @@ Process:
     R: 1
 Solver:
   AbsTol: 1.0e-09
-  BinaryOutDir: false
+  #BinaryOutDir: false
   CLM:
     CLMDumpInterval: 1
     CLMFileDir: ./
