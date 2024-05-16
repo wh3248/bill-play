@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+CURRENT_DIR=`dirname "$0"`
+
 # -----------------------------------------------------------------------------
 # User input
 # -----------------------------------------------------------------------------
@@ -10,13 +12,12 @@ set -e
 
 runId=$1
 echo "Starting $runId"
-export PARFLOW_DIR=/Users/wh3248/workspaces/trame-sandtank/parflow/opt/parflow
 
 # -----------------------------------------------------------------------------
 # Go to run directory
 # -----------------------------------------------------------------------------
 
-cd "/Users/wh3248/tmp/sandtank_container/temp/runs/$runId"
+cd "$CURRENT_DIR/runs/$runId"
 
 # -----------------------------------------------------------------------------
 # Run ParFlow
@@ -37,7 +38,7 @@ export OMP_NUM_THREADS=2
 FILE=./slimin.txt
 if [[ -f "$FILE" ]]; then
   echo "Staring EcoSLIM"
-  /Users/wh3248/workspaces/trame-sandtank/parflow/opt/ecoslim/bin/EcoSLIM.exe
+  ../../src/EcoSLIM/ecoslim/bin/EcoSLIM.exe
   echo "EcoSLIM Run Complete"
 fi
 

@@ -5,6 +5,10 @@ cd $CURRENT_DIR
 ROOT_DIR=$PWD
 CODE_DIR=$PWD/src
 
+module load cmake/3.18.2
+module load gcc/8
+module load parflow/3.10.0
+
 mkdir -p $CODE_DIR
 
 # -----------------------------------------------------------------------------
