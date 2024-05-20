@@ -206,8 +206,21 @@ def run_parflow(
     parflow_run.Process.Topology.Q = topology[1]
     parflow_run.Process.Topology.R = topology[2]
     parflow_run.TimingInfo.StopTime = days * 24
+    parflow_run.Solver.MaxIter = 50
+    parflow_run.Solver.Linear.Preconditioner = "PFMG"   #MGSemi  #PFMG
+    parflow_run.Solver.Linear.Preconditioner.PCMatrixType = 'PFSymmetric'
+
+    parflow_run.Solver.Nonlinear.EtaChoice = 'EtaConstant'
+    parflow_run.Solver.Nonlinear.EtaValue = 0.01
+    parflow_run.Solver.Nonlinear.UseJacobian = True
+    parflow_run.Solver.Nonlinear.StepTol = 1e-15
+    parflow_run.Solver.Nonlinear.Globalization = 'LineSearch'
+    parflow_run.Solver.Linear.KrylovDimension = 500
+    parflow_run.Solver.Linear.MaxRestarts = 8
+
     parflow_run.TimingInfo.DumpInterval = 1.0
-    parflow_run.Solver.MaxConvergenceFailures = 20
+    parflow_run.Solver.MaxRestarts = 2
+    parflow_run.Solver.MaxConvergenceFailures = 3
     parflow_run.Geom.domain.Upper.X = shape[2] * 1000
     parflow_run.Geom.domain.Upper.Y = shape[1] * 1000
     parflow_run.Solver.CLM.MetFileName = "CW3E"
