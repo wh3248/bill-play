@@ -1,4 +1,5 @@
 build
 test_output
 debug.txt
+*.out
 

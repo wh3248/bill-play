@@ -18,6 +18,7 @@ import subsettools.subset_utils
 
 def main():
     """Execute a parflow simulation using data collected from hf_hydrodata."""
+    mode = sys.argv[1] if len(sys.argv) > 1 else "all"
 
     parflow_output_dir = os.path.abspath("test_output")
     os.makedirs(parflow_output_dir, exist_ok=True)
@@ -26,19 +27,21 @@ def main():
     start_time = "2005-10-01"
     end_time = "2005-10-02"
     topology = (1, 1, 1)
-
     shape = get_forcing_shape(parflow_output_dir)
-    if shape is None:
-        print("Collect static inputs...")
-        shape = collect_static_inputs(
-            huc_ids, topology, parflow_output_dir, start_time, end_time
-        )
 
-        print("Collect forcing files...")
-        collect_forcing(huc_ids, topology, parflow_output_dir, start_time, end_time)
+    if not mode == "run":
+        if shape is None:
+            print("Collect static inputs...")
+            shape = collect_static_inputs(
+                huc_ids, topology, parflow_output_dir, start_time, end_time
+            )
 
-    print(f"Run parflow on grid ({shape})")
-    run_parflow(shape, topology, parflow_output_dir, start_time, end_time)
+            print("Collect forcing files...")
+            collect_forcing(huc_ids, topology, parflow_output_dir, start_time, end_time)
+
+    if mode in ["run", "all"]:
+        print(f"Run parflow on grid ({shape})")
+        run_parflow(shape, topology, parflow_output_dir, start_time, end_time)
 
 
 def collect_static_inputs(
