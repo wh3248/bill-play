@@ -9,14 +9,14 @@ source pf_env.sh
 # Download and install CUDA memory model, RMM
 mkdir -p $BASE                                                                                     
 cd $BASE
-#git clone -b branch-0.10 --single-branch --recurse-submodules https://github.com/hokkanen/rmm
-#cd rmm/
-#mkdir build
-#cd build
-#cmake .. -DCMAKE_INSTALL_PREFIX=$RMM_DIR
-#make -j
-#make install
-#make test
+git clone -b branch-0.10 --single-branch --recurse-submodules https://github.com/hokkanen/rmm
+cd rmm/
+mkdir build
+cd build
+cmake .. -DCMAKE_INSTALL_PREFIX=$RMM_DIR
+make -j
+make install
+make test
 
 # Download and install ParFlow                                                                                                                    
 cd $BASE
@@ -35,8 +35,8 @@ cmake .. \
       -DPARFLOW_ENABLE_TIMING=TRUE \
       -DCMAKE_INSTALL_PREFIX=$PARFLOW_DIR \
       -DPARFLOW_ACCELERATOR_BACKEND=cuda \
-      -DPARFLOW_HAVE_CLM=TRUE
-#      -DRMM_ROOT=$RMM_DIR
+      -DPARFLOW_HAVE_CLM=TRUE \
+      -DRMM_ROOT=$RMM_DIR
 #      -DHYPRE_ROOT=$HYPRE_DIR                                                                                                                    
 #      -DPARFLOW_ENABLE_HDF5=TRUE \     
 

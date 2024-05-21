@@ -19,8 +19,8 @@ cmake .. \
       -DPARFLOW_ENABLE_TIMING=TRUE \
       -DCMAKE_INSTALL_PREFIX=$PARFLOW_DIR \
       -DPARFLOW_ACCELERATOR_BACKEND=cuda \
-      -DPARFLOW_HAVE_CLM=TRUE
-#      -DRMM_ROOT=$RMM_DIR
+      -DPARFLOW_HAVE_CLM=TRUE \
+      -DRMM_ROOT=$RMM_DIR
 #      -DHYPRE_ROOT=$HYPRE_DIR                                                                                                                    
 #      -DPARFLOW_ENABLE_HDF5=TRUE \     
 
