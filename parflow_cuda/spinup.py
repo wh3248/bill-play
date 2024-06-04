@@ -23,10 +23,10 @@ def main():
     os.makedirs(parflow_output_dir, exist_ok=True)
 
     huc_ids = ["15060202"]
-    huc_ids = ["140802"]
-    huc_ids = ["14"]
+    #huc_ids = ["140802"]
+    #huc_ids = ["14"]
     start_time = "2005-10-01"
-    end_time = "2005-10-15"
+    end_time = "2005-10-03"
     topology = (1, 1, 1)
     shape = get_existing_files_shape(parflow_output_dir)
 
@@ -82,6 +82,7 @@ def collect_static_inputs(
             "dataset": "conus2_domain",
             "variable": variable,
             "huc_id": huc_id,
+            "nomask": "true"
         }
         data = hf.get_gridded_data(filter_options)
         if len(data.shape) == 2:
@@ -108,9 +109,10 @@ def collect_static_inputs(
         file_type="vegp",
     )
     vegm_data = hf.get_gridded_data(
-        dataset="conus2_domain", variable="clm_run", file_type="pfb", huc_id=huc_id
+        dataset="conus2_domain", variable="clm_run", file_type="pfb", huc_id=huc_id, nomask="true"
     )
     land_cover_data = subsettools.subsettools._reshape_ndarray_to_vegm_format(vegm_data)
+    #land_cover_data = np.nan_to_num(land_cover_data)
     subsettools.subset_utils.write_land_cover(land_cover_data, parflow_output_dir)
 
     drv_clm_path = f"{parflow_output_dir}/drv_clmin.dat"
