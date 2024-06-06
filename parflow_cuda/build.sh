@@ -1,3 +1,4 @@
+# Build script for CUDA Parflow BUILD
 module purge
 module load anaconda3/2022.5
 module load cudatoolkit/11.1
@@ -18,6 +19,15 @@ make -j
 make install
 make test
 
+# Download and install HYPER
+export HYPRE_DIR=$BASE/hypre
+mkdir -p $HYPRE_DIR
+
+cd $HYPRE_DIR
+curl -L https://github.com/hypre-space/hypre/archive/v2.31.0.tar.gz | tar --strip-components=1 -xzv && \
+cd src && ./configure --prefix=$HYPRE_DIR && \
+make install
+
 # Download and install ParFlow                                                                                                                    
 cd $BASE
 echo $BASE
@@ -31,6 +41,8 @@ cmake .. \
       -DCMAKE_C_FLAGS=-lcuda \
       -DPARFLOW_ENABLE_PYTHON=TRUE \
       -DPARFLOW_AMPS_LAYER=mpi1 \
+      -DHYPRE_ROOT=$HYPRE_DIR                         \
+      -DHYPRE_DIR=$HYPRE_DIR                         \
       -DPARFLOW_AMPS_SEQUENTIAL_IO=TRUE \
       -DPARFLOW_ENABLE_TIMING=TRUE \
       -DCMAKE_INSTALL_PREFIX=$PARFLOW_DIR \

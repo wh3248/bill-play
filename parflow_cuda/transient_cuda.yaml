@@ -1,9 +1,9 @@
 BCPressure:
-  PatchNames: xlower xupper ylower yupper zlower zupper
+  PatchNames: x_lower x_upper y_lower y_upper z_lower z_upper
 Cell:
   '0':
     dzScale:
-      Value: 1.0
+      Value: 1
   '1':
     dzScale:
       Value: 0.5
@@ -32,25 +32,32 @@ Cell:
     dzScale:
       Value: 0.0005
 ComputationalGrid:
-  DX: 1000.0
-  DY: 1000.0
+  DX: 1000
+  DY: 1000
   DZ: 200.0
   Lower:
     X: 0.0
     Y: 0.0
     Z: 0.0
-  NX: 4442
-  NY: 3256
+  NX: 109
+  NY: 90
   NZ: 10
 Contaminants:
   Names: ''
 Cycle:
-  Names: constant
+  Names: constant rainrec
   constant:
     Names: alltime
     Repeat: -1
     alltime:
-      Length: 10000000
+      Length: 1
+  rainrec:
+    Names: rain rec
+    Repeat: -1
+    rain:
+      Length: 10
+    rec:
+      Length: 150
 Domain:
   GeomName: domain
 FBz:
@@ -64,9 +71,7 @@ Geom:
       Names: domain b1 b2 g1 g2 g4 g5 g6 g7
   Porosity:
     GeomNames: domain s1 s2 s3 s4 s5 s6 s7 s8 s9 s10 s11 s12 s13 g1 g2 g3 g4 g5 g6
-      g7 g8
-  Retardation:
-    GeomNames: ''
+      g7 g8 b1 b2
   b1:
     Perm:
       TensorValX: 1.0
@@ -74,6 +79,9 @@ Geom:
       TensorValZ: 0.1
       Type: Constant
       Value: 0.005
+    Porosity:
+      Type: Constant
+      Value: 0.1
   b2:
     Perm:
       TensorValX: 1.0
@@ -81,18 +89,21 @@ Geom:
       TensorValZ: 0.1
       Type: Constant
       Value: 0.01
+    Porosity:
+      Type: Constant
+      Value: 0.05
   domain:
     FBz:
-      FileName: depth_to_bedrock.pfb
+      FileName: pf_flowbarrier.pfb
     ICPressure:
-      FileName: press_init.pfb
       RefGeom: domain
-      RefPatch: zlower
+      RefPatch: z_upper
+      Value: -2.0
     Lower:
       X: 0.0
       Y: 0.0
       Z: 0.0
-    Patches: xlower xupper ylower yupper zlower zupper
+    Patches: x_lower x_upper y_lower y_upper z_lower z_upper
     Perm:
       TensorValX: 1.0
       TensorValY: 1.0
@@ -103,21 +114,21 @@ Geom:
       Type: Constant
       Value: 0.33
     RelPerm:
-      Alpha: 1.0
+      Alpha: 0.5
       InterpolationMethod: Linear
-      MinPressureHead: -300
-      N: 3.0
+      MinPressureHead: -500
+      N: 2.5
       NumSamplePoints: 20000
     Saturation:
-      Alpha: 1.0
-      N: 3.0
-      SRes: 0.001
+      Alpha: 0.5
+      N: 2.5
+      SRes: 1.0e-05
       SSat: 1.0
     SpecificStorage:
       Value: 0.0001
     Upper:
-      X: 4442000.0
-      Y: 3256000.0
+      X: 109000
+      Y: 90000
       Z: 2000.0
   g1:
     Perm:
@@ -128,7 +139,7 @@ Geom:
       Value: 0.02
     Porosity:
       Type: Constant
-      Value: 0.33
+      Value: 0.12
   g2:
     Perm:
       TensorValX: 1.0
@@ -138,14 +149,14 @@ Geom:
       Value: 0.03
     Porosity:
       Type: Constant
-      Value: 0.33
+      Value: 0.3
   g3:
     Perm:
       Type: Constant
       Value: 0.04
     Porosity:
       Type: Constant
-      Value: 0.33
+      Value: 0.01
   g4:
     Perm:
       TensorValX: 1.0
@@ -155,7 +166,7 @@ Geom:
       Value: 0.05
     Porosity:
       Type: Constant
-      Value: 0.33
+      Value: 0.15
   g5:
     Perm:
       TensorValX: 1.0
@@ -165,7 +176,7 @@ Geom:
       Value: 0.06
     Porosity:
       Type: Constant
-      Value: 0.33
+      Value: 0.22
   g6:
     Perm:
       TensorValX: 1.0
@@ -175,7 +186,7 @@ Geom:
       Value: 0.08
     Porosity:
       Type: Constant
-      Value: 0.33
+      Value: 0.27
   g7:
     Perm:
       TensorValX: 1.0
@@ -185,14 +196,14 @@ Geom:
       Value: 0.1
     Porosity:
       Type: Constant
-      Value: 0.33
+      Value: 0.06
   g8:
     Perm:
       Type: Constant
       Value: 0.2
     Porosity:
       Type: Constant
-      Value: 0.33
+      Value: 0.3
   indi_input:
     FileName: pf_indicator.pfb
   s1:
@@ -437,7 +448,6 @@ GeomInput:
     Value: 20
   domaininput:
     GeomName: domain
-    GeomNames: domain
     InputType: Box
   g1:
     Value: 21
@@ -488,43 +498,47 @@ GeomInput:
 Gravity: 1.0
 ICPressure:
   GeomNames: domain
-  Type: PFBFile
+  Type: HydroStaticPatch
 KnownSolution: NoKnownSolution
 Mannings:
   FileName: mannings.pfb
+  Geom:
+    domain:
+      Value: 1.0e-05
+  GeomNames: domain
   Type: PFBFile
 Patch:
-  xlower:
+  x_lower:
     BCPressure:
       Cycle: constant
       Type: FluxConst
       alltime:
         Value: 0.0
-  xupper:
+  x_upper:
     BCPressure:
       Cycle: constant
       Type: FluxConst
       alltime:
         Value: 0.0
-  ylower:
+  y_lower:
     BCPressure:
       Cycle: constant
       Type: FluxConst
       alltime:
         Value: 0.0
-  yupper:
+  y_upper:
     BCPressure:
       Cycle: constant
       Type: FluxConst
       alltime:
         Value: 0.0
-  zlower:
+  z_lower:
     BCPressure:
       Cycle: constant
       Type: FluxConst
       alltime:
         Value: 0.0
-  zupper:
+  z_upper:
     BCPressure:
       Cycle: constant
       Type: OverlandKinematic
@@ -559,59 +573,37 @@ PhaseSources:
     Type: Constant
 Process:
   Topology:
-    P: 4
-    Q: 4
+    P: 1
+    Q: 1
     R: 1
 Solver:
-  AbsTol: 1.0e-09
-  #BinaryOutDir: false
+  AbsTol: 1.0e-10
   CLM:
-    CLMDumpInterval: 1
-    CLMFileDir: ./
-    DailyRST: true
-    EvapBeta: Linear
-    FieldCapacity: 1.0
-    IrrigationType: none
-    IstepStart: 1
-    MetFileNT: 24
     MetFileName: CW3E
-    MetFilePath: ''
-    MetForcing: 3D
-    Print1dOut: false
-    ResSat: 0.2
-    ReuseCount: 1
-    RootZoneNZ: 4
-    SingleFile: true
-    SoiLayer: 4
-    VegWaterStress: Saturation
-    WiltingPoint: 0.2
-    WriteLastRST: true
-    WriteLogs: false
-  Drop: 1.0e-30
-  EvapTransFile: false
-  LSM: CLM
+    MetFilePath: /home/wh3248/workspaces/bill-play/parflow_cuda/test_output
+  EvapTrans:
+    FileName: pme.pfb
+  EvapTransFile: true
   Linear:
     KrylovDimension: 500
     MaxRestarts: 8
     Preconditioner:
       PCMatrixType: PFSymmetric
       _value_: PFMG
-  MaxConvergenceFailures: 20
+  MaxConvergenceFailures: 5
   MaxIter: 250000
   Nonlinear:
     DerivativeEpsilon: 1.0e-16
     EtaChoice: EtaConstant
-    EtaValue: 0.001
+    EtaValue: 0.01
     FlowBarrierZ: true
     Globalization: LineSearch
-    MaxIter: 500
-    ResidualTol: 1.0e-07
-    StepTol: 1.0e-16
-    UseJacobian: true
+    MaxIter: 250
+    ResidualTol: 1.0e-05
+    StepTol: 1.0e-15
+    UseJacobian: false
     VariableDz: true
-  PrintCLM: true
   PrintMask: true
-  PrintOverlandSum: false
   PrintPressure: true
   PrintSaturation: true
   PrintSubsurfData: true
@@ -637,13 +629,13 @@ SpecificStorage:
   Type: Constant
 TimeStep:
   Type: Constant
-  Value: 1.0
+  Value: 1
 TimingInfo:
   BaseUnit: 1.0
-  DumpInterval: 1.0
+  DumpInterval: 1
   StartCount: 0
   StartTime: 0
-  StopTime: 8760
+  StopTime: 24
 TopoSlopesX:
   FileName: slope_x.pfb
   GeomNames: domain
@@ -658,4 +650,3 @@ dzScale:
   GeomNames: domain
   Type: nzList
   nzListNumber: 10
-  

@@ -574,7 +574,7 @@ Solver:
     IrrigationType: none
     IstepStart: 1
     MetFileNT: 24
-    MetFileName: NLDAS
+    MetFileName: CW3E
     MetFilePath: ''
     MetForcing: 3D
     Print1dOut: false

@@ -11,9 +11,7 @@
 #SBATCH --mail-type=end          # send email when job ends                                                                                           
 #SBATCH --mail-type=fail         # send email if job fails                                                                                            
 #SBATCH --mail-user=wh3248@princeton.edu
-cd $HOME/workspaces/bill-play/parflow_cuda
+cd $HOME/workspaces/bill-play/parflow_cpu
 module purge
 source init.sh
-cd test_output
-ls ${PARFLOW_DIR}/bin/parflow
-nsys profile --output chen_spinup.nsys-rep ${PARFLOW_DIR}/bin/parflow chen_spinup
+python transient.py run

@@ -14,6 +14,4 @@
 cd $HOME/workspaces/bill-play/parflow_cuda
 module purge
 source init.sh
-cd test_output
-ls ${PARFLOW_DIR}/bin/parflow
-nsys profile --output chen_spinup.nsys-rep ${PARFLOW_DIR}/bin/parflow chen_spinup
+python transient.py run

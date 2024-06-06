@@ -16,4 +16,4 @@ module purge
 source init.sh
 cd test_output
 ls ${PARFLOW_DIR}/bin/parflow
-nsys profile --output chen_spinup.nsys-rep ${PARFLOW_DIR}/bin/parflow chen_spinup
+nsys profile --output transient.nsys-rep ${PARFLOW_DIR}/bin/parflow transient

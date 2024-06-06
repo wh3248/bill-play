@@ -1,5 +1,5 @@
 """
-Run parflow for a transient run using PFB files collected from hf_hydrodata.
+Run GPU (cuda) parflow for a spinup run using PFB files collected from hf_hydrodata.
 """
 
 # pylint: disable=W0212, E1101
@@ -8,7 +8,6 @@ import os
 import time
 from typing import List, Tuple
 import datetime
-import pathlib
 import parflow as pf
 import numpy as np
 import hf_hydrodata as hf
@@ -18,27 +17,35 @@ import subsettools.subset_utils
 
 def main():
     """Execute a parflow simulation using data collected from hf_hydrodata."""
+    mode = sys.argv[1] if len(sys.argv) > 1 else "all"
 
     parflow_output_dir = os.path.abspath("test_output")
     os.makedirs(parflow_output_dir, exist_ok=True)
 
     huc_ids = ["15060202"]
+    huc_ids = ["140802"]
+    #huc_ids = ["14"]
     start_time = "2005-10-01"
     end_time = "2005-10-02"
     topology = (1, 1, 1)
+    shape = get_existing_files_shape(parflow_output_dir)
 
-    shape = get_forcing_shape(parflow_output_dir)
-    if shape is None:
-        print("Collect static inputs...")
-        shape = collect_static_inputs(
-            huc_ids, topology, parflow_output_dir, start_time, end_time
-        )
+    if mode != "run":
+        if shape is None:
+            print("Collect static inputs...")
+            shape = collect_static_inputs(
+                huc_ids, topology, parflow_output_dir, start_time, end_time
+            )
 
-        print("Collect forcing files...")
-        collect_forcing(huc_ids, topology, parflow_output_dir, start_time, end_time)
+            if True:  # Do not do this for spinup since forcing files are not used
+                print("Collect forcing files...")
+                collect_forcing(
+                    huc_ids, topology, parflow_output_dir, start_time, end_time
+                )
 
-    print(f"Run parflow on grid ({shape})")
-    run_parflow(shape, topology, parflow_output_dir, start_time, end_time)
+    if mode in ["run", "all"]:
+        print(f"Run parflow on grid ({shape})")
+        run_parflow(shape, topology, parflow_output_dir, start_time, end_time)
 
 
 def collect_static_inputs(
@@ -55,8 +62,11 @@ def collect_static_inputs(
         parflow_output_dir:     Path to parflow input/output directory.
         start_time:             Start time of the simulation as string YYYY-MM-DD.
         end_time:               End time of the simulation as string YYYY-MM-DD.
+    Returns:
+        The dimension shape of static pfb files.
     """
 
+    result = None
     huc_id = ",".join(huc_ids)
 
     for variable in [
@@ -72,6 +82,7 @@ def collect_static_inputs(
             "dataset": "conus2_domain",
             "variable": variable,
             "huc_id": huc_id,
+            "nomask": "true"
         }
         data = hf.get_gridded_data(filter_options)
         if len(data.shape) == 2:
@@ -98,9 +109,10 @@ def collect_static_inputs(
         file_type="vegp",
     )
     vegm_data = hf.get_gridded_data(
-        dataset="conus2_domain", variable="clm_run", file_type="pfb", huc_id=huc_id
+        dataset="conus2_domain", variable="clm_run", file_type="pfb", huc_id=huc_id, nomask="true"
     )
     land_cover_data = subsettools.subsettools._reshape_ndarray_to_vegm_format(vegm_data)
+    #land_cover_data = np.nan_to_num(land_cover_data)
     subsettools.subset_utils.write_land_cover(land_cover_data, parflow_output_dir)
 
     drv_clm_path = f"{parflow_output_dir}/drv_clmin.dat"
@@ -113,6 +125,7 @@ def collect_static_inputs(
     subsettools.subset_utils.edit_drvclmin(
         file_path=drv_clm_path, start=start_time, end=end_time, time_zone="UTC"
     )
+    subsettools.create_mask_solid(huc_ids, "conus2", parflow_output_dir)
     return result
 
 
@@ -193,11 +206,13 @@ def run_parflow(
         end_time:               End time of the simulation as string YYYY-MM-DD.
     """
     duration_start = time.time()
-    parflow_run = pf.Run.from_definition(pathlib.Path("transient.yaml"))
+    os.chdir(parflow_output_dir)
+    parflow_run = pf.Run.from_definition("../transient.yaml")
+
     days = (
-        (datetime.datetime.strptime(end_time, "%Y-%m-%d")
-        - datetime.datetime.strptime(start_time, "%Y-%m-%d")).days
-    )
+        datetime.datetime.strptime(end_time, "%Y-%m-%d")
+        - datetime.datetime.strptime(start_time, "%Y-%m-%d")
+    ).days
 
     parflow_run.ComputationalGrid.NX = shape[2]
     parflow_run.ComputationalGrid.NY = shape[1]
@@ -207,23 +222,9 @@ def run_parflow(
     parflow_run.Process.Topology.R = topology[2]
     parflow_run.TimingInfo.StopTime = days * 24
 
-    parflow_run.Solver.Linear.Preconditioner = "PFMG"   #MGSemi  #PFMG
-    parflow_run.Solver.Linear.Preconditioner.PCMatrixType = 'PFSymmetric'
-
-    parflow_run.Solver.Nonlinear.EtaChoice = 'EtaConstant'
-    parflow_run.Solver.Nonlinear.EtaValue = 0.01
-    parflow_run.Solver.Nonlinear.UseJacobian = True
-    parflow_run.Solver.Nonlinear.StepTol = 1e-15
-    parflow_run.Solver.Nonlinear.Globalization = 'LineSearch'
-    parflow_run.Solver.Linear.KrylovDimension = 500
-    parflow_run.Solver.Linear.MaxRestarts = 8
-
-    parflow_run.TimingInfo.DumpInterval = 1.0
-    parflow_run.Solver.MaxConvergenceFailures = 2
-    parflow_run.Solver.MaxIter = 100
     parflow_run.Geom.domain.Upper.X = shape[2] * 1000
     parflow_run.Geom.domain.Upper.Y = shape[1] * 1000
-    parflow_run.Solver.CLM.MetFileName = "CW3E"
+    # parflow_run.Solver.CLM.MetFileName = "CW3E"
     parflow_run.Solver.CLM.MetFilePath = parflow_output_dir
     parflow_run.Geom.domain.FBz.FileName = "pf_flowbarrier.pfb"
     parflow_run.Geom.domain.ICPressure.FileName = "ss_pressure_head.pfb"
@@ -235,19 +236,24 @@ def run_parflow(
     duration = round(time.time() - duration_start, 2)
     print(f"Parflow run duration = {duration} seconds.")
 
-def get_forcing_shape(parflow_output_dir:str):
+
+def get_existing_files_shape(parflow_output_dir: str):
     """
-    Get the forcing files shape if they already exists
+    Get the dimension shape of existing files in the output directory.
     Parameters:
             parflow_output_dir:     Path to parflow input/output directory.
+    Returns:
+        The dimension shape of existing files if they exists, othewise return None
     """
 
     result = None
-    path = f"{parflow_output_dir}/CW3E.APCP.000001_to_000024.pfb"
+    path = f"{parflow_output_dir}/slope_x.pfb"
     if os.path.exists(path):
         data = pf.read_pfb(path)
         result = (10, data.shape[1], data.shape[2])
+        print(result)
     return result
+
 
 if __name__ == "__main__":
     main()
