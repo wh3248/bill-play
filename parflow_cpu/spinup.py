@@ -1,5 +1,5 @@
 """
-Run GPU (cuda) parflow for a spinup run using PFB files collected from hf_hydrodata.
+Run CPU parflow for a spinup run using PFB files collected from hf_hydrodata.
 """
 
 # pylint: disable=W0212, E1101
@@ -23,10 +23,10 @@ def main():
     os.makedirs(parflow_output_dir, exist_ok=True)
 
     huc_ids = ["15060202"]
-    #huc_ids = ["140802"]
+    huc_ids = ["140802"]
     #huc_ids = ["14"]
     start_time = "2005-10-01"
-    end_time = "2005-10-03"
+    end_time = "2005-10-02"
     topology = (1, 1, 1)
     shape = get_existing_files_shape(parflow_output_dir)
 
