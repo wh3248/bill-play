@@ -632,7 +632,7 @@ TimeStep:
   Value: 1
 TimingInfo:
   BaseUnit: 1.0
-  DumpInterval: 1
+  DumpInterval: 24
   StartCount: 0
   StartTime: 0
   StopTime: 24
