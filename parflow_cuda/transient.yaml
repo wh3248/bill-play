@@ -588,7 +588,9 @@ Solver:
     WriteLastRST: true
     WriteLogs: false
   Drop: 1.0e-30
-  EvapTransFile: false
+  EvapTrans:
+    FileName: pme.pfb
+  EvapTransFile: true
   LSM: CLM
   Linear:
     KrylovDimension: 500
@@ -640,7 +642,7 @@ TimeStep:
   Value: 1.0
 TimingInfo:
   BaseUnit: 1.0
-  DumpInterval: 1.0
+  DumpInterval: 24.0
   StartCount: 0
   StartTime: 0
   StopTime: 8760

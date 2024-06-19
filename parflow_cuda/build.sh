@@ -1,11 +1,5 @@
 # Build script for CUDA Parflow BUILD
-module purge
-module load anaconda3/2022.5
-module load cudatoolkit/11.1
-module load ucx/1.10.0
-module load openmpi/cuda-11.1/gcc/4.1.1
-module load cmake/3.18.2
-source pf_env.sh
+source init.sh
 
 # Download and install CUDA memory model, RMM
 mkdir -p $BASE                                                                                     
@@ -25,16 +19,17 @@ mkdir -p $HYPRE_DIR
 
 cd $HYPRE_DIR
 curl -L https://github.com/hypre-space/hypre/archive/v2.31.0.tar.gz | tar --strip-components=1 -xzv && \
-cd src && ./configure --prefix=$HYPRE_DIR && \
+cd src && ./configure --with-cuda --with-cuda-home=$CUDA_HOME --with-gpu-arch='80' --prefix=$HYPRE_DIR && \
 make install
 
 # Download and install ParFlow                                                                                                                    
 cd $BASE
 echo $BASE
-pwd
-git clone https://github.com/parflow/parflow.git
-echo "CLONED PARFLOW"
+#git clone git@github.com:mfahdaz/parflow.git
+# git clone https://github.com/parflow/parflow.git
+git clone git@github.com:gartavanis/parflow.git
 cd parflow/
+git checkout hackathon-bill
 mkdir build
 cd build/
 cmake .. \
@@ -47,9 +42,10 @@ cmake .. \
       -DPARFLOW_ENABLE_TIMING=TRUE \
       -DCMAKE_INSTALL_PREFIX=$PARFLOW_DIR \
       -DPARFLOW_ACCELERATOR_BACKEND=cuda \
+      '-DCMAKE_CUDA_ARCHITECTURES=80;86'  \
+      -DCMAKE_DEBUG_FLAG=Debug   \
       -DPARFLOW_HAVE_CLM=TRUE \
       -DRMM_ROOT=$RMM_DIR
-#      -DHYPRE_ROOT=$HYPRE_DIR                                                                                                                    
 #      -DPARFLOW_ENABLE_HDF5=TRUE \     
 
 make

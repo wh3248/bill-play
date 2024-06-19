@@ -26,7 +26,7 @@ def main():
     huc_ids = ["140802"]
     #huc_ids = ["14"]
     start_time = "2005-10-01"
-    end_time = "2005-10-02"
+    end_time = "2005-10-03"
     topology = (1, 1, 1)
     shape = get_existing_files_shape(parflow_output_dir)
 
@@ -221,6 +221,7 @@ def run_parflow(
     parflow_run.Process.Topology.Q = topology[1]
     parflow_run.Process.Topology.R = topology[2]
     parflow_run.TimingInfo.StopTime = days * 24
+#    parflow_run.TimingInfo.StopTime = 1
 
     parflow_run.Geom.domain.Upper.X = shape[2] * 1000
     parflow_run.Geom.domain.Upper.Y = shape[1] * 1000

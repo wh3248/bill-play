@@ -26,8 +26,8 @@ def main():
     huc_ids = ["140802"]
     #huc_ids = ["14"]
     start_time = "2005-10-01"
-    end_time = "2005-10-31"
-    topology = (1, 1, 1)
+    end_time = "2005-10-02"
+    topology = (6, 6, 1)
     shape = get_existing_files_shape(parflow_output_dir)
 
     if mode != "run":
