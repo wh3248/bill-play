@@ -9,5 +9,6 @@ def pytest_addoption(parser):
     parser.addoption("--servers", action="store", default="gunicorn")
     parser.addoption("--scenarios", action="store", default="sleep")
     parser.addoption("--nparallel", action="store", default="32")
-    parser.addoption("--sleep_time", action="store", default="20")
+    parser.addoption("--sleep_time", action="store", default="2")
+    parser.addoption("--days", action="store", default="2")
 

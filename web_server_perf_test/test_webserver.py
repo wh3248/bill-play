@@ -15,17 +15,22 @@
         temporal_resolution         : temporal ressolution of gridded-data: one of daily, hourly, static
         server_workers              : number of gunicorn worker processes
         server_threads              : number of gunicorn threads per worker process
-        gunicorn_type               : gunicorn "--gevent" or "--gthreads"
+        gunicorn_type               : gunicorn type: one of gevent, gthreads, or blank (for default)
         total_duration              : total duration in seconds (after all parallel calls complete)
-        min_call_duration           : min duration in seconds of a single call
-        max_call_duration           : max duration in seconds of a single calls
-        mean_call_duration          : mean duration in seconds of all paralle calls
-        num_errors                   : number of parallel calls that timeout or failed
+        min_call_duration           : min duration in seconds of a successful single calls
+        max_call_duration           : max duration in seconds of a successful single calls
+        mean_call_duration          : mean duration in seconds of all successful paralle calls
+        max_error_duration          : max duration in seconds for each error call
+        min_error_duration          : min duration in seconds for each error call 
+        num_errors                  : number of parallel calls that timeout or failed
 """
 
 import time
+import datetime
 import requests
+import io
 import concurrent.futures
+import numpy as np
 
 def test_webserver(request):
     """Run performance test combinations specified on command line."""
@@ -36,14 +41,15 @@ def test_webserver(request):
     scenarios = request.config.getoption("--scenarios")
     nparallels = request.config.getoption("--nparallel")
     sleep_times = request.config.getoption("--sleep_time")
+    days_options = request.config.getoption("--days")
     subgrid_size = 4
-    days_options = "4"
-    temporal_resolution="hours"
+    temporal_resolution="hourly"
 
     test_number = 0
     options = {}
     options["subgrid_size"] = subgrid_size
     options["temporal_resolution"] = temporal_resolution
+    options["wy"] = wy
     for scenario in scenarios.split(","):
         options["scenario"] = scenario
         for nparallel in nparallels.split(","):
@@ -66,18 +72,32 @@ def _run_test(test_number, options):
     """Run test using the combination of options specified."""
 
     nparallel = int(options["nparallel"])
-    sleep_time = int(options["sleep_time"])
     scenario = options["scenario"]
+    temporal_resolution = options["temporal_resolution"]
+    days = int(options["days"])
     base_url = _get_server_url(options)
     execute_results = [() for _ in range(nparallel)]
+    wy = options["wy"]
+    start_time = f"{wy}-01-1"
+    start_time_date = datetime.datetime.strptime(start_time, "%Y-%m-%d")
+    end_time = (start_time_date + datetime.timedelta(days=days)).strftime("%Y-%m-%d")
+    grid_bounds = "[1000, 1000, 1010, 1010]"
     if scenario == "sleep":
+        sleep_time = int(options["sleep_time"])
         url = f"{base_url}/wait?wait_time={sleep_time}"
+    elif scenario == "gridded-data":
+        url = f"{base_url}/gridded-data?dataset=CW3E"
+        url = url + f"&temporal_resolution={temporal_resolution}"
+        url = url + f"&variable=precipitation"
+        url = url + f"&grid_bounds={grid_bounds}"
+        url = url + f"&start_time={start_time}"
+        url = url + f"&end_time={end_time}"
     else:
         raise ValueError(f"Scenario '{scenario} is not supported.")
     print(f"Test {test_number} ({nparallel}) - {url}")
-    _execute_parallel_calls(test_number, nparallel, url, execute_results)
+    _execute_parallel_calls(test_number, nparallel, url, execute_results, options)
 
-def _execute_parallel_calls(test_number, nparallel, url, execute_results):
+def _execute_parallel_calls(test_number, nparallel, url, execute_results, options):
     total_start = time.time()
     with concurrent.futures.ProcessPoolExecutor(max_workers=nparallel) as executor:
         futures = []
@@ -87,22 +107,30 @@ def _execute_parallel_calls(test_number, nparallel, url, execute_results):
                 url,
                 execute_results,
                 test_number,
-                calln)
+                calln,
+                options)
             futures.append(future)
         _ = [future.result() for future in concurrent.futures.as_completed(futures)]
     total_duration = time.time() - total_start
     print(f"Total duration [test {test_number}] = {total_duration} seconds.")
 
-def _execute_call(url, execute_results, test_number, calln):
+def _execute_call(url, execute_results, test_number, calln, options):
     call_start = time.time()
     try:
         response = requests.get(url)
         if response.status_code == 200:
             successs_fail = "success"
+            #if options["scenario"] == "gridded-data" and options["server"] == "gunicorn":
+                #np_loaded = np.load(io.BytesIO(response.content))
+                #result_np = np_loaded["variable"]
+                #print(result_np.shape)
         else:
+            print(response.content)
             successs_fail = "fail"
     except Exception as e:
         success_fail = "fail"
+        print("FAIL")
+        print(e)
     call_duration = time.time() - call_start
     print(f"Call {test_number}.{calln+1} duration = {call_duration}")
 
