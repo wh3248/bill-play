@@ -79,7 +79,7 @@ def _run_test(test_number, options):
 
 def _execute_parallel_calls(test_number, nparallel, url, execute_results):
     total_start = time.time()
-    with concurrent.futures.ThreadPoolExecutor() as executor:
+    with concurrent.futures.ProcessPoolExecutor() as executor:
         futures = []
         for calln in range(0, nparallel):
             future = executor.submit(
