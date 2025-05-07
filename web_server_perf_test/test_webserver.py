@@ -29,6 +29,7 @@ import time
 import datetime
 import requests
 import io
+import hf_hydrodata as hf
 import concurrent.futures
 import numpy as np
 
@@ -76,7 +77,8 @@ def _run_test(test_number, options):
     temporal_resolution = options["temporal_resolution"]
     days = int(options["days"])
     base_url = _get_server_url(options)
-    execute_results = [() for _ in range(nparallel)]
+    server = options["server"]
+    execute_results = [None for _ in range(nparallel)]
     wy = options["wy"]
     start_time = f"{wy}-01-1"
     start_time_date = datetime.datetime.strptime(start_time, "%Y-%m-%d")
@@ -94,12 +96,17 @@ def _run_test(test_number, options):
         url = url + f"&end_time={end_time}"
     else:
         raise ValueError(f"Scenario '{scenario} is not supported.")
-    print(f"Test {test_number} ({nparallel}) - {url}")
+    total_start = time.time()
     _execute_parallel_calls(test_number, nparallel, url, execute_results, options)
+    total_duration = round(time.time() - total_start, 2)
+    min_call = round(min([item[0] for item in execute_results if item[1] == "success"]),2)
+    max_call = round(max([item[0] for item in execute_results if item[1] == "success"]), 2)
+    mean_call = round(sum([item[0] for item in execute_results if item[1] == "success"])/sum([1 for item in execute_results if item[1] == "success"]), 2)
+    num_errors =len([1 for item in execute_results if item[1] != "success"])
+    print(f"Test {test_number} ({nparallel}) {server} duration = {total_duration} seconds. Min={min_call} Max={max_call} Mean={mean_call} Errors={num_errors}")
 
 def _execute_parallel_calls(test_number, nparallel, url, execute_results, options):
-    total_start = time.time()
-    with concurrent.futures.ProcessPoolExecutor(max_workers=nparallel) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=nparallel) as executor:
         futures = []
         for calln in range(0, nparallel):
             future = executor.submit(
@@ -111,29 +118,34 @@ def _execute_parallel_calls(test_number, nparallel, url, execute_results, option
                 options)
             futures.append(future)
         _ = [future.result() for future in concurrent.futures.as_completed(futures)]
-    total_duration = time.time() - total_start
-    print(f"Total duration [test {test_number}] = {total_duration} seconds.")
 
 def _execute_call(url, execute_results, test_number, calln, options):
     call_start = time.time()
     try:
-        response = requests.get(url)
+        headers = None
+        if options["server"] in ["k8_prod", "k8_main"]:
+            headers = hf.data_model_access._get_api_headers()
+        response = requests.get(url, headers=headers)
         if response.status_code == 200:
-            successs_fail = "success"
-            #if options["scenario"] == "gridded-data" and options["server"] == "gunicorn":
-                #np_loaded = np.load(io.BytesIO(response.content))
-                #result_np = np_loaded["variable"]
-                #print(result_np.shape)
+            success_fail = "success"
+            if options["scenario"] == "gridded-data" and options["server"] == "gunicorn":
+                print_result_shape(response)
         else:
-            print(response.content)
-            successs_fail = "fail"
+            success_fail = "fail"
     except Exception as e:
         success_fail = "fail"
-        print("FAIL")
-        print(e)
     call_duration = time.time() - call_start
-    print(f"Call {test_number}.{calln+1} duration = {call_duration}")
+    write_log(execute_results, test_number, calln, options, success_fail, call_duration)
 
+def write_log(execute_results, test_number, calln, options, successs_fail, call_duration):
+    execute_results[calln] = (call_duration, successs_fail)
+
+
+def print_result_shape(response):
+    return
+    np_loaded = np.load(io.BytesIO(response.content))
+    result_np = np_loaded["variable"]
+    print(result_np.shape)
 
 def _get_server_url(options):
     """Get the server url for the combinations option specified."""
