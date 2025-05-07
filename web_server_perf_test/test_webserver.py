@@ -8,7 +8,7 @@
         server                      : one of gunicorn, k8_prod, k8_main (Web server called by this test)
         wy                          : water year of the start of hf_hydrodata read (change for cold run)
         scenario                    : Scenario of test (one of sleep, gridded-data)
-        nparallel                   : number of parallel client calls
+        parallel                    : number of parallel client calls
         sleep_time                  : number of seconds for web server to sleep to simulate load
         subgrid_size                : number of cells in gridded-data returned
         days                        : number of days of data returned in each call
@@ -27,6 +27,7 @@
 
 import time
 import datetime
+import math
 import requests
 import io
 import hf_hydrodata as hf
@@ -38,17 +39,16 @@ def test_webserver(request):
 
     print()
     wy = int(request.config.getoption("--wy"))
-    servers = request.config.getoption("--servers")
-    scenarios = request.config.getoption("--scenarios")
-    nparallels = request.config.getoption("--nparallel")
+    servers = request.config.getoption("--server")
+    scenarios = request.config.getoption("--scenario")
+    nparallels = request.config.getoption("--parallel")
     sleep_times = request.config.getoption("--sleep_time")
     days_options = request.config.getoption("--days")
-    subgrid_size = 4
+    grid_sizes = request.config.getoption("--grid_size")
     temporal_resolution="hourly"
 
     test_number = 0
     options = {}
-    options["subgrid_size"] = subgrid_size
     options["temporal_resolution"] = temporal_resolution
     options["wy"] = wy
     for scenario in scenarios.split(","):
@@ -66,8 +66,10 @@ def test_webserver(request):
                 elif scenario == "gridded-data":
                     for days in days_options.split(","):
                         options["days"] = days
-                        test_number = test_number + 1
-                        _run_test(test_number, options)           
+                        for grid_size in grid_sizes.split(","):
+                            options["grid_size"] = grid_size
+                            test_number = test_number + 1
+                            _run_test(test_number, options)           
 
 def _run_test(test_number, options):
     """Run test using the combination of options specified."""
@@ -76,6 +78,7 @@ def _run_test(test_number, options):
     scenario = options["scenario"]
     temporal_resolution = options["temporal_resolution"]
     days = int(options["days"])
+    grid_size = int(options["grid_size"])
     base_url = _get_server_url(options)
     server = options["server"]
     execute_results = [None for _ in range(nparallel)]
@@ -83,7 +86,9 @@ def _run_test(test_number, options):
     start_time = f"{wy}-01-1"
     start_time_date = datetime.datetime.strptime(start_time, "%Y-%m-%d")
     end_time = (start_time_date + datetime.timedelta(days=days)).strftime("%Y-%m-%d")
-    grid_bounds = "[1000, 1000, 1010, 1010]"
+    grid_start = 1000
+    grid_end = grid_start + int(math.sqrt(grid_size))
+    grid_bounds = f"[{grid_start},{grid_start},{grid_end},{grid_end}]"
     if scenario == "sleep":
         sleep_time = int(options["sleep_time"])
         url = f"{base_url}/wait?wait_time={sleep_time}"
@@ -99,11 +104,21 @@ def _run_test(test_number, options):
     total_start = time.time()
     _execute_parallel_calls(test_number, nparallel, url, execute_results, options)
     total_duration = round(time.time() - total_start, 2)
-    min_call = round(min([item[0] for item in execute_results if item[1] == "success"]),2)
-    max_call = round(max([item[0] for item in execute_results if item[1] == "success"]), 2)
-    mean_call = round(sum([item[0] for item in execute_results if item[1] == "success"])/sum([1 for item in execute_results if item[1] == "success"]), 2)
     num_errors =len([1 for item in execute_results if item[1] != "success"])
-    print(f"Test {test_number} ({nparallel}) {server} duration = {total_duration} seconds. Min={min_call} Max={max_call} Mean={mean_call} Errors={num_errors}")
+    min_error_call = 0
+    max_error_call = 0
+    min_call = 0
+    max_call = 0
+    mean_call = 0
+    if num_errors < nparallel:
+        min_call = round(min([item[0] for item in execute_results if item[1] == "success"]),2)
+        max_call = round(max([item[0] for item in execute_results if item[1] == "success"]), 2)
+        mean_call = round(sum([item[0] for item in execute_results if item[1] == "success"])/len([1 for item in execute_results if item[1] == "success"]), 2)
+    if num_errors > 0:
+        min_error_call = round(min([item[0] for item in execute_results if item[1] != "success"]),2)
+        max_error_call = round(max([item[0] for item in execute_results if item[1] != "success"]),2)
+
+    print(f"Test {test_number} ({nparallel}) {server} duration = {total_duration} seconds. Min={min_call} Max={max_call} Mean={mean_call} Errors={num_errors} MinError={min_error_call} MaxError={max_error_call}")
 
 def _execute_parallel_calls(test_number, nparallel, url, execute_results, options):
     with concurrent.futures.ThreadPoolExecutor(max_workers=nparallel) as executor:
@@ -132,6 +147,7 @@ def _execute_call(url, execute_results, test_number, calln, options):
                 print_result_shape(response)
         else:
             success_fail = "fail"
+            print(response.content)
     except Exception as e:
         success_fail = "fail"
     call_duration = time.time() - call_start
