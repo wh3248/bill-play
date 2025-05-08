@@ -172,6 +172,15 @@ def write_log(execute_results, test_number, total_duration, options):
         with open(log_file_path, "w+") as fp:
             line = ",".join(column_names)
             fp.write(f"{line}\n")
+    server_workers = str(options["gunicorn_settings"][0])
+    server_threads = str(options["gunicorn_settings"][1])
+    gunicorn_type = str(options["gunicorn_settings"][2])
+    if server == "k8_prod"
+        server_workers = "15"
+        server_threads = "1"
+    if server == "k3_main":
+        server_workers = "3"
+        server_threads = "1"
     with open(log_file_path, "a") as fp:
         line = ""
         line = line + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -184,9 +193,9 @@ def write_log(execute_results, test_number, total_duration, options):
         line = line + "," + str(options.get("subgrid_size", "8"))
         line = line + "," + str(options.get("days", "1"))
         line = line + "," + str(options.get("temporal_resolution", ""))
-        line = line + "," + str(options["gunicorn_settings"][0])
-        line = line + "," + str(options["gunicorn_settings"][1])
-        line = line + "," + str(options["gunicorn_settings"][2])
+        line = line + "," + server_workers
+        line = line + "," + server_threads
+        line = line + "," + gunicorn_type
         line = line + "," + str(total_duration)
         line = line + "," + str(min_call)
         line = line + "," + str(max_call)
