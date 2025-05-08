@@ -20,11 +20,12 @@
         min_call_duration           : min duration in seconds of a successful single calls
         max_call_duration           : max duration in seconds of a successful single calls
         mean_call_duration          : mean duration in seconds of all successful paralle calls
-        max_error_duration          : max duration in seconds for each error call
+        num_errors:                 : number of calls with errors
         min_error_duration          : min duration in seconds for each error call 
-        num_errors                  : number of parallel calls that timeout or failed
+        max_error_duration          : max duration in seconds for each error call
 """
 
+import os
 import time
 import datetime
 import math
@@ -108,22 +109,9 @@ def _run_test(test_number, options):
     total_start = time.time()
     _execute_parallel_calls(test_number, nparallel, url, execute_results, options)
     total_duration = round(time.time() - total_start, 2)
-    num_errors =len([1 for item in execute_results if item[1] != "success"])
-    min_error_call = 0
-    max_error_call = 0
-    min_call = 0
-    max_call = 0
-    mean_call = 0
-    if num_errors < nparallel:
-        min_call = round(min([item[0] for item in execute_results if item[1] == "success"]),2)
-        max_call = round(max([item[0] for item in execute_results if item[1] == "success"]), 2)
-        mean_call = round(sum([item[0] for item in execute_results if item[1] == "success"])/len([1 for item in execute_results if item[1] == "success"]), 2)
-    if num_errors > 0:
-        min_error_call = round(min([item[0] for item in execute_results if item[1] != "success"]),2)
-        max_error_call = round(max([item[0] for item in execute_results if item[1] != "success"]),2)
 
-    print(f"Test {test_number} {scenario} ({nparallel}) {server} duration = {total_duration} seconds. Min={min_call} Max={max_call} Mean={mean_call} Errors={num_errors} MinError={min_error_call} MaxError={max_error_call}")
-    
+    write_log(execute_results, test_number, total_duration,  options)
+
 def _execute_parallel_calls(test_number, nparallel, url, execute_results, options):
     with concurrent.futures.ThreadPoolExecutor(max_workers=nparallel) as executor:
         futures = []
@@ -154,13 +142,60 @@ def _execute_call(url, execute_results, test_number, calln, options):
             print(response.content)
     except Exception as e:
         success_fail = "fail"
+        print(e)
     call_duration = time.time() - call_start
-    write_log(execute_results, test_number, calln, options, success_fail, call_duration)
+    execute_results[calln] = (call_duration, success_fail)
 
-def write_log(execute_results, test_number, calln, options, successs_fail, call_duration):
-    execute_results[calln] = (call_duration, successs_fail)
-
-
+def write_log(execute_results, test_number, total_duration, options):
+    """Append an entry to the log file with performance statistics for test #test_number."""
+    
+    nparallel = int(options.get("nparallel"))
+    scenario = options.get("scenario")
+    server = options.get("server")
+    num_errors =len([1 for item in execute_results if item[1] != "success"])
+    min_error_call = 0
+    max_error_call = 0
+    min_call = 0
+    max_call = 0
+    mean_call = 0
+    if num_errors < nparallel:
+        min_call = round(min([item[0] for item in execute_results if item[1] == "success"]),2)
+        max_call = round(max([item[0] for item in execute_results if item[1] == "success"]), 2)
+        mean_call = round(sum([item[0] for item in execute_results if item[1] == "success"])/len([1 for item in execute_results if item[1] == "success"]), 2)
+    if num_errors > 0:
+        min_error_call = round(min([item[0] for item in execute_results if item[1] != "success"]),2)
+        max_error_call = round(max([item[0] for item in execute_results if item[1] != "success"]),2)
+    print(f"Test {test_number} {scenario} ({nparallel}) {server} duration = {total_duration} seconds. Min={min_call} Max={max_call} Mean={mean_call} Errors={num_errors} MinError={min_error_call} MaxError={max_error_call}")
+    log_file_path = "./web_server.csv"
+    column_names = ["date", "server", "wy", "scenario", "parallel", "sleep_time", "subgrid_size", "days", "temporal_resolution", "server_worker", "server_thread", "gunicorn_type", "total_duration", "min_call_duration", "max__call_duration", "mean_call_duration", "num_errors", "min_error_duration", "max_error_duration"]
+    if not os.path.exists(log_file_path):
+        with open(log_file_path, "w+") as fp:
+            line = ",".join(column_names)
+            fp.write(f"{line}\n")
+    with open(log_file_path, "a") as fp:
+        line = ""
+        line = line + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        line = line + "," + options["server"]
+        line = line + "," + str(options["wy"])
+        line = line + "," + str(options["wy"])
+        line = line + "," + str(options["scenario"])
+        line = line + "," + str(options["nparallel"])
+        line = line + "," + str(options.get("sleep_time", "1"))
+        line = line + "," + str(options.get("subgrid_size", "8"))
+        line = line + "," + str(options.get("days", "1"))
+        line = line + "," + str(options.get("temporal_resolution", ""))
+        line = line + "," + str(options["gunicorn_settings"][0])
+        line = line + "," + str(options["gunicorn_settings"][1])
+        line = line + "," + str(options["gunicorn_settings"][2])
+        line = line + "," + str(total_duration)
+        line = line + "," + str(min_call)
+        line = line + "," + str(max_call)
+        line = line + "," + str(mean_call)
+        line = line + "," + str(num_errors)
+        line = line + "," + str(min_error_call)
+        line = line + "," + str(max_error_call)
+        fp.write(f"{line}\n")
+        
 def print_result_shape(response):
     """This is for debugging to print the gridded data response."""
 
