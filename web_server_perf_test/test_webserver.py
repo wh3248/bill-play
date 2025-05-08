@@ -33,6 +33,7 @@ import io
 import hf_hydrodata as hf
 import concurrent.futures
 import numpy as np
+import xarray as xr
 
 def test_webserver(request):
     """Run performance test combinations specified on command line."""
@@ -77,23 +78,24 @@ def _run_test(test_number, options):
     nparallel = int(options["nparallel"])
     scenario = options["scenario"]
     temporal_resolution = options["temporal_resolution"]
-    days = int(options["days"])
-    grid_size = int(options["grid_size"])
     base_url = _get_server_url(options)
     server = options["server"]
     execute_results = [None for _ in range(nparallel)]
-    wy = options["wy"]
-    start_time = f"{wy}-01-1"
-    start_time_date = datetime.datetime.strptime(start_time, "%Y-%m-%d")
-    end_time = (start_time_date + datetime.timedelta(days=days)).strftime("%Y-%m-%d")
-    grid_start = 1000
-    grid_end = grid_start + int(math.sqrt(grid_size))
-    grid_bounds = f"[{grid_start},{grid_start},{grid_end},{grid_end}]"
     if scenario == "sleep":
         sleep_time = int(options["sleep_time"])
         url = f"{base_url}/wait?wait_time={sleep_time}"
     elif scenario == "gridded-data":
+        days = int(options["days"])
+        grid_size = int(options["grid_size"])
+        wy = options["wy"]
+        start_time = f"{wy}-01-1"
+        start_time_date = datetime.datetime.strptime(start_time, "%Y-%m-%d")
+        end_time = (start_time_date + datetime.timedelta(days=days)).strftime("%Y-%m-%d")
+        grid_start = 1000
+        grid_end = grid_start + int(math.sqrt(grid_size))
+        grid_bounds = f"[{grid_start},{grid_start},{grid_end},{grid_end}]"
         url = f"{base_url}/gridded-data?dataset=CW3E"
+        url = url + "&dataset_version=1.0"
         url = url + f"&temporal_resolution={temporal_resolution}"
         url = url + f"&variable=precipitation"
         url = url + f"&grid_bounds={grid_bounds}"
@@ -118,8 +120,8 @@ def _run_test(test_number, options):
         min_error_call = round(min([item[0] for item in execute_results if item[1] != "success"]),2)
         max_error_call = round(max([item[0] for item in execute_results if item[1] != "success"]),2)
 
-    print(f"Test {test_number} ({nparallel}) {server} duration = {total_duration} seconds. Min={min_call} Max={max_call} Mean={mean_call} Errors={num_errors} MinError={min_error_call} MaxError={max_error_call}")
-
+    print(f"Test {test_number} {scenario} ({nparallel}) {server} duration = {total_duration} seconds. Min={min_call} Max={max_call} Mean={mean_call} Errors={num_errors} MinError={min_error_call} MaxError={max_error_call}")
+    
 def _execute_parallel_calls(test_number, nparallel, url, execute_results, options):
     with concurrent.futures.ThreadPoolExecutor(max_workers=nparallel) as executor:
         futures = []
@@ -143,7 +145,7 @@ def _execute_call(url, execute_results, test_number, calln, options):
         response = requests.get(url, headers=headers)
         if response.status_code == 200:
             success_fail = "success"
-            if options["scenario"] == "gridded-data" and options["server"] == "gunicorn":
+            if options["scenario"] == "gridded-data":
                 print_result_shape(response)
         else:
             success_fail = "fail"
@@ -158,10 +160,12 @@ def write_log(execute_results, test_number, calln, options, successs_fail, call_
 
 
 def print_result_shape(response):
+    """This is for debugging to print the gridded data response."""
+
     return
-    np_loaded = np.load(io.BytesIO(response.content))
-    result_np = np_loaded["variable"]
-    print(result_np.shape)
+    file_obj = io.BytesIO(response.content)
+    ds = xr.open_dataset(file_obj)
+    print(ds)
 
 def _get_server_url(options):
     """Get the server url for the combinations option specified."""
