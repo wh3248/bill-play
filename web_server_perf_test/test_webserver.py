@@ -28,6 +28,7 @@
 import time
 import datetime
 import math
+import json
 import requests
 import io
 import hf_hydrodata as hf
@@ -51,6 +52,7 @@ def test_webserver(request):
     test_number = 0
     options = {}
     options["temporal_resolution"] = temporal_resolution
+    options["gunicorn_settings"] = get_gunicorn_settings()
     options["wy"] = wy
     for scenario in scenarios.split(","):
         options["scenario"] = scenario
@@ -78,8 +80,8 @@ def _run_test(test_number, options):
     nparallel = int(options["nparallel"])
     scenario = options["scenario"]
     temporal_resolution = options["temporal_resolution"]
-    base_url = _get_server_url(options)
     server = options["server"]
+    base_url = _get_server_url(server)
     execute_results = [None for _ in range(nparallel)]
     if scenario == "sleep":
         sleep_time = int(options["sleep_time"])
@@ -167,10 +169,9 @@ def print_result_shape(response):
     ds = xr.open_dataset(file_obj)
     print(ds)
 
-def _get_server_url(options):
+def _get_server_url(server):
     """Get the server url for the combinations option specified."""
 
-    server = options.get("server")
     if server == "gunicorn":
         result = "http://localhost:5300/api"
     elif server == "k8_prod":
@@ -181,4 +182,23 @@ def _get_server_url(options):
         raise ValueError(f"The server option '{server}' is not supported.")
     return result
 
+def get_gunicorn_settings():
+    base_url = _get_server_url("gunicorn")
+
+    url = f"{base_url}/wait"
+    threads = 1
+    workers = 1
+    gtype = "gthreads"
+    try:
+        response = requests.get(url)
+        if response.status_code == 200:
+            content = response.content.decode("utf-8")
+            content_json = json.loads(content)
+            threads = content_json.get("threads") if content_json.get("threads") else threads
+            workers = content_json.get("workers") if content_json.get("workers") else workers
+            gtype = content_json.get("gtype") if content_json.get("gtype") else gtype
+    except Exception as e:
+        pass
+    return (workers, threads, gtype)
+    
 
