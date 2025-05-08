@@ -11,16 +11,20 @@ cd $SRC_DIR
 # Read the workers and threads command line argument
 NWORKERS=${1:-}
 NTHREADS=${2:-}
+GTYPE=${3:gthread}
 export NWORKERS_ARG=$NWORKERS
 export NTHREADS_ARG=$NTHREADS
+export GTYPE_ARG=$GTYPE
 
 options=""
 if [ ! -z "$NWORKERS" ] ; then
-    options="--workers $NWORKERS"
+    options="$options --workers $NWORKERS"
 fi
 if [ ! -z "$NTHREADS" ] ; then
     options="$options --threads $NTHREADS"
 fi
+options="$options --worker-class gevent"
+
 echo $options
 
 gunicorn --bind 0.0.0.0:5300 --timeout 60 $options web_server_main:app

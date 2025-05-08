@@ -12,7 +12,8 @@ import io
 import logging
 import flask
 import numpy as np
-import hf_hydrodata
+import xarray as xr
+import hf_hydrodata as hf
 import base_app
 
 
@@ -31,6 +32,17 @@ def gridded_data_route() -> flask.Response:
     try:
         query_parameters = flask.request.args
         options = _convert_strings_to_json(query_parameters)
+
+        bytes_data = generate_netcdf(options)
+        response = base_app.app.response_class(
+            flask.stream_with_context(_response_generator(bytes_data)),
+            mimetype="application/octet-stream",
+        )
+        response.headers.set(
+            "Content-Disposition", "attachment", filename="variable"
+        )
+        return response
+
         data = hf_hydrodata.get_gridded_data(options)
         byte_io = io.BytesIO()
         np.savez(byte_io, variable=data, allow_pickle=False)
@@ -92,3 +104,20 @@ def _response_generator(dataset_bytes):
         chunk = dataset_bytes[offset:end]
         offset = end
         yield chunk
+
+def generate_netcdf(options):
+    """Generate NetCDF file from numpy data array"""
+
+    data = hf.get_gridded_data(options)
+    dims = ["time", "x", "y"]
+    variable = options.get("variable")
+    metadata = {}
+    data_da = xr.DataArray(
+        data=data,
+        dims=dims,
+        name=variable,
+        attrs=metadata)
+    data_ds = data_da.to_dataset(promote_attrs=True)
+    dataset_bytes = data_ds.to_netcdf()
+    return dataset_bytes
+

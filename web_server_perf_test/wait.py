@@ -24,8 +24,9 @@ def wait_route() -> flask.Response:
     query_parameters = flask.request.args
     nworkers = os.getenv("NWORKERS_ARG")
     nthreads = os.getenv("NTHREADS_ARG")
+    gtype = os.getenv("GTYPE_ARG")
 
     wait_time = int(query_parameters.get("wait_time", "0"))
     if wait_time > 0:
         time.sleep(wait_time)
-    return {"workers": nworkers, "threads": nthreads, "wait_time": wait_time}
+    return {"workers": nworkers, "threads": nthreads, "gtype": gtype, "wait_time": wait_time}
