@@ -22,8 +22,8 @@ def main():
         proj_string = crs.to_proj4()
         to_latlon_transformer = pyproj.Transformer.from_crs(crs, pyproj.CRS.from_epsg(4326), always_xy=True)
         to_xy_transformer = pyproj.Transformer.from_crs(pyproj.CRS.from_epsg(4326), crs, always_xy=True)
-        x = 10
-        y = 10
+        x = 0
+        y = 0
         lon, lat = to_latlon_transformer.transform(x, y)
         print()
         print("PROJ4", proj_string)
