@@ -166,8 +166,8 @@ def write_log(execute_results, test_number, total_duration, options):
         min_error_call = round(min([item[0] for item in execute_results if item[1] != "success"]),2)
         max_error_call = round(max([item[0] for item in execute_results if item[1] != "success"]),2)
     print(f"Test {test_number} {scenario} ({nparallel}) {server} duration = {total_duration} seconds. Min={min_call} Max={max_call} Mean={mean_call} Errors={num_errors} MinError={min_error_call} MaxError={max_error_call}")
-    log_file_path = "./web_server.csv"
-    column_names = ["date", "server", "wy", "scenario", "parallel", "sleep_time", "subgrid_size", "days", "temporal_resolution", "server_worker", "server_thread", "gunicorn_type", "total_duration", "min_call_duration", "max__call_duration", "mean_call_duration", "num_errors", "min_error_duration", "max_error_duration"]
+    log_file_path = "./log_web_server.csv"
+    column_names = ["date", "server", "wy", "scenario", "parallel", "sleep_time", "subgrid_size", "days", "temporal_resolution", "server_worker", "server_thread", "gunicorn_type", "total_duration", "min_call_duration", "max_call_duration", "mean_call_duration", "num_errors", "min_error_duration", "max_error_duration"]
     if not os.path.exists(log_file_path):
         with open(log_file_path, "w+") as fp:
             line = ",".join(column_names)
@@ -175,7 +175,7 @@ def write_log(execute_results, test_number, total_duration, options):
     server_workers = str(options["gunicorn_settings"][0])
     server_threads = str(options["gunicorn_settings"][1])
     gunicorn_type = str(options["gunicorn_settings"][2])
-    if server == "k8_prod"
+    if server == "k8_prod":
         server_workers = "15"
         server_threads = "1"
     if server == "k3_main":
@@ -186,11 +186,10 @@ def write_log(execute_results, test_number, total_duration, options):
         line = line + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         line = line + "," + options["server"]
         line = line + "," + str(options["wy"])
-        line = line + "," + str(options["wy"])
         line = line + "," + str(options["scenario"])
         line = line + "," + str(options["nparallel"])
         line = line + "," + str(options.get("sleep_time", "1"))
-        line = line + "," + str(options.get("subgrid_size", "8"))
+        line = line + "," + str(options.get("grid_size", "8"))
         line = line + "," + str(options.get("days", "1"))
         line = line + "," + str(options.get("temporal_resolution", ""))
         line = line + "," + server_workers
@@ -234,7 +233,7 @@ def get_gunicorn_settings():
     workers = 1
     gtype = "gthreads"
     try:
-        response = requests.get(url)
+        response = requests.get(url, timeout=3)
         if response.status_code == 200:
             content = response.content.decode("utf-8")
             content_json = json.loads(content)
@@ -242,7 +241,7 @@ def get_gunicorn_settings():
             workers = content_json.get("workers") if content_json.get("workers") else workers
             gtype = content_json.get("gtype") if content_json.get("gtype") else gtype
     except Exception as e:
-        pass
+        print(f"Unable to connect to guncorn server: '{url}'")
     return (workers, threads, gtype)
     
 
