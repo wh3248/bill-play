@@ -26,6 +26,13 @@ def main():
               {"server": "gunicorn", "gunicorn_type": "gevent"},
               {"server": "k8_prod", "gunicorn_type": "gthreads"},
               {"server": "k8_main", "gunicorn_type": "gevent"}
+         ]},         
+         {"file_path": "plot_sleep.jpg",
+          "graph_filter": {"scenario": "sleep"},
+          "line_filters": [
+              {"sleep_time": 1},
+              {"sleep_time": 10},
+              {"sleep_time": 30},
          ]}         
     ]
     # Create all the plot files
@@ -100,7 +107,7 @@ def plot_threads_vs_duration(file_path, graph_filter, line_filters):
         line_variable_value_list = []
         for line_filter_key in line_filter:
             bar_df = bar_df[bar_df[line_filter_key]==line_filter[line_filter_key]]
-            line_variable_value_list.append(line_filter[line_filter_key])
+            line_variable_value_list.append(str(line_filter[line_filter_key]))
         line_variable_value = ",".join(line_variable_value_list)
 
         if len(bar_df) > 0:
