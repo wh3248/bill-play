@@ -178,9 +178,11 @@ def write_log(execute_results, test_number, total_duration, options):
     if server == "k8_prod":
         server_workers = "15"
         server_threads = "1"
+        gunicorn_type = "gthreads"
     if server == "k3_main":
         server_workers = "3"
         server_threads = "1"
+        gunicorn_type = "gthreads"
     with open(log_file_path, "a") as fp:
         line = ""
         line = line + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")

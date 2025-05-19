@@ -5,90 +5,136 @@ import numpy as np
 
 
 def main():
-    graph_filters = [
-        {"subgrid_size": 1024, "days": 10}
+    plot_filters = [
+         {"file_path": "plot_1day.jpg",
+          "graph_filter": {"subgrid_size": 1024, "days": 1},
+          "line_filters": [
+              {"server": "gunicorn", "gunicorn_type": "gevent"},
+              {"server": "k8_prod", "gunicorn_type": "gthreads"},
+              {"server": "k8_main", "gunicorn_type": "gevent"}
+         ]},
+         {"file_path": "plot_1024.jpg",
+          "graph_filter": {"subgrid_size": 1024, "days": 10},
+          "line_filters": [
+              {"server": "gunicorn", "gunicorn_type": "gevent"},
+              {"server": "k8_prod", "gunicorn_type": "gthreads"},
+              {"server": "k8_main", "gunicorn_type": "gevent"}
+         ]},
+         {"file_path": "plot_102400.jpg",
+          "graph_filter": {"subgrid_size": 102400, "days": 10},
+          "line_filters": [
+              {"server": "gunicorn", "gunicorn_type": "gevent"},
+              {"server": "k8_prod", "gunicorn_type": "gthreads"},
+              {"server": "k8_main", "gunicorn_type": "gevent"}
+         ]}         
     ]
-    line_variables = "server"
-    for graph_filter in graph_filters:
-        plot_threads_vs_duration(graph_filter, line_variables)
+    # Create all the plot files
+    for plot_filter in plot_filters:
+         file_path = plot_filter.get("file_path")
+         graph_filter = plot_filter.get("graph_filter")
+         line_filters = plot_filter.get("line_filters")
+         plot_threads_vs_duration(file_path, graph_filter, line_filters)
 
-def plot_threads_vs_duration(graph_filter, line_variable_name):
-
-    colors = ["blue", "green", "red"]
+def plot_threads_vs_duration(file_path, graph_filter, line_filters):
+    colors = ["blue", "green", "red", "orange"]
     df = pd.read_csv("log_web_server.csv")
+
+    # Apply graph_filter for combinations for this plot and construct plot title
     title_values = []
     for graph_filter_key in graph_filter:
         df = df[df[graph_filter_key]==graph_filter[graph_filter_key]]
         title_values.append(str(graph_filter_key.capitalize()) + ": " + str(graph_filter[graph_filter_key]))
     title = ", ".join(title_values)
+
+    # Get number of entries on x and y axis for this plot and create matplotlib fig and ax1
     parallel_df = df["parallel"].unique()
     parallel_keys = parallel_df.tolist()
-    line_variable_keys = df[line_variable_name].unique().tolist()
-    number_of_bars = len(line_variable_keys)
+    number_of_bars = len(line_filters)
     parallel_keys_indexes = np.arange(len(parallel_keys))
     fig, ax1 = plt.subplots()
     bar_width = 1/(number_of_bars+1)
+
+    # Compute maximum number of errors in all of the line filters of the graph
+    # This is to see if we need to display error bars or not in this plot
     plot_n = 0
     max_num_error_values = 0
-    for line_variable_value in line_variable_keys:
-            bar_df = df[df[line_variable_name]==line_variable_value]
+    for line_filter in line_filters:
+        bar_df = df.copy()
+        for line_filter_key in line_filter:
+            bar_df = bar_df[bar_df[line_filter_key]==line_filter[line_filter_key]]
+        if len(bar_df) > 0:
             num_errors = bar_df.groupby("parallel")["num_errors"].mean().to_dict()
-            num_errors_values = [num_errors[k] for k in parallel_keys]
+            num_errors_values = [num_errors.get(k, int(k)) for k in parallel_keys]
             max_num_error_values = max(max_num_error_values, max(num_errors_values)) 
 
+    # Plot the error bars first (so they display under the duration lines)
+    plot_n = 0
     if max_num_error_values > 0:
         ax2 = ax1.twinx()
-        for line_variable_value in line_variable_keys:
+        for line_filter in line_filters:
+            # Collect the bar_df of the entry for one line filter combination
+            bar_df = df.copy()
+            line_variable_value_list = []
+            for line_filter_key in line_filter:
+                bar_df = bar_df[bar_df[line_filter_key]==line_filter[line_filter_key]]
+                line_variable_value_list.append(line_filter[line_filter_key])
+            line_variable_value = ",".join(line_variable_value_list)
 
-
-                bar_df = df[df[line_variable_name]==line_variable_value]
-
+            # Draw the bars for the line filter combination
+            if len(bar_df) > 0:
                 num_errors = bar_df.groupby("parallel")["num_errors"].mean().to_dict()
-                num_errors_values = [num_errors[k] for k in parallel_keys]
+                num_errors_values = [num_errors.get(k, int(k)) for k in parallel_keys]
 
                 # Draw bars
                 offsets = parallel_keys_indexes + bar_width * plot_n
                 color_index = int(plot_n)
                 ax2.bar(offsets, num_errors_values, bar_width, edgecolor=colors[color_index], color=colors[color_index], label=line_variable_value+" (errors)")
 
+            plot_n = plot_n + 1
 
-                plot_n = plot_n + 1
 
+    # Draw the duration values as line points
     plot_n = 0
-    for line_variable_value in line_variable_keys:
+    for line_filter in line_filters:
+        bar_df = df.copy()
+        line_variable_value_list = []
+        for line_filter_key in line_filter:
+            bar_df = bar_df[bar_df[line_filter_key]==line_filter[line_filter_key]]
+            line_variable_value_list.append(line_filter[line_filter_key])
+        line_variable_value = ",".join(line_variable_value_list)
 
-            bar_df = df[df[line_variable_name]==line_variable_value]
-
+        if len(bar_df) > 0:
             max_duration = bar_df.groupby("parallel")["max_call_duration"].mean().to_dict()
 
-            max_duration_values = [max_duration[k] for k in parallel_keys]
+            max_duration_values = [max_duration.get(k, 0) for k in parallel_keys]
             min_duration = bar_df.groupby("parallel")["min_call_duration"].mean().to_dict()
-            min_duration_values = [min_duration[k] for k in parallel_keys]
+            min_duration_values = [min_duration.get(k, 0) for k in parallel_keys]
 
             # Create the line plot
-            offsets = parallel_keys_indexes + bar_width*len(line_variable_keys)/2
+            offsets = parallel_keys_indexes + bar_width*len(line_filters)/2
             color_index = int(plot_n)
             ax1.plot(offsets, max_duration_values, marker="o", color=colors[color_index], label=line_variable_value + " (max)")
             ax1.plot(offsets, min_duration_values, marker="o", color=colors[color_index], label=line_variable_value + " (min)")
 
-            plot_n = plot_n + 1
+        plot_n = plot_n + 1
 
     # Add labels and title
     ax1.set_zorder(1)
     ax1.patch.set_visible(False)
+    ax1.set_ylim(0)
     if max_num_error_values > 0:
         ax2.set_ylabel('# Errors')
+        ax2.set_ylim(0, max(8, max_num_error_values))
     ax1.set_ylabel('Duration')
     plt.title(title)
     plt.xlabel('# Parallel Calls')
     
     plt.xticks([r + bar_width * 1.5 for r in range(len(parallel_keys_indexes))], parallel_keys)
 
-    graph_file_name = "duration_line_graph.jpg"
     fig.legend(loc=2, bbox_to_anchor=(0.12, .89))
     plt.tight_layout()
-    plt.savefig(graph_file_name, format="jpg")
-    print(f"Created '{graph_file_name}'")
+    plt.savefig(file_path, format="jpg")
+    print(f"Created '{file_path}'")
 
 
 
