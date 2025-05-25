@@ -130,7 +130,7 @@ def _execute_call(url, execute_results, test_number, calln, options):
     call_start = time.time()
     try:
         headers = None
-        if options["server"] in ["k8_prod", "k8_main"]:
+        if options["server"] in ["k8_prod", "k8_main", "k8_develop"]:
             headers = hf.data_model_access._get_api_headers()
         response = requests.get(url, headers=headers)
         if response.status_code == 200:
@@ -178,11 +178,15 @@ def write_log(execute_results, test_number, total_duration, options):
     if server == "k8_prod":
         server_workers = "15"
         server_threads = "1"
-        gunicorn_type = "gthreads"
-    if server == "k3_main":
+        gunicorn_type = "gthread"
+    if server == "k8_main":
         server_workers = "3"
         server_threads = "1"
-        gunicorn_type = "gthreads"
+        gunicorn_type = "gthread"
+    if server == "k8_develop":
+        server_workers = "1"
+        server_threads = "1"
+        gunicorn_type = "gthread"
     with open(log_file_path, "a") as fp:
         line = ""
         line = line + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -223,6 +227,8 @@ def _get_server_url(server):
         result = "https://hydrogen.princeton.edu/api"
     elif server == "k8_main":
         result = "https://hydro-dev.princeton.edu/api"
+    elif server == "k8_develop":
+        result = "https://hydro-dev-wh.princeton.edu/api"
     else:
         raise ValueError(f"The server option '{server}' is not supported.")
     return result
