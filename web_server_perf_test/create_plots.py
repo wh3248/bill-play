@@ -32,13 +32,25 @@ def main():
          ]},
          {"file_path": "plot_102400_prod.jpg",
           "max_y": 160,
-          "graph_filter": {"subgrid_size": 102400, "days": 10, "server_worker": 3},
+          "graph_filter": {"subgrid_size": 102400, "days": 10, "server_worker": 15},
           "line_filters": [
               {"server": "k8_prod", "gunicorn_type": "gthread"},
+         ]},
+         {"file_path": "plot_102400_gunicorn_8.jpg",
+          "max_y": 160,
+          "graph_filter": {"subgrid_size": 102400, "days": 10, "server_worker": 8},
+          "line_filters": [
+              {"server": "gunicorn", "gunicorn_type": "gevent"},
          ]},
          {"file_path": "plot_102400_gunicorn_3.jpg",
           "max_y": 160,
           "graph_filter": {"subgrid_size": 102400, "days": 10, "server_worker": 3},
+          "line_filters": [
+              {"server": "gunicorn", "gunicorn_type": "gevent"},
+         ]},
+         {"file_path": "plot_102400_gunicorn_1.jpg",
+          "max_y": 160,
+          "graph_filter": {"subgrid_size": 102400, "days": 10, "server_worker": 1},
           "line_filters": [
               {"server": "gunicorn", "gunicorn_type": "gevent"},
          ]},
@@ -60,7 +72,29 @@ def main():
               {"sleep_time": 0, "gunicorn_type": "gthread"},
               {"sleep_time": 0, "gunicorn_type": "gevent"},
          ]},
+
+         {"file_path": "plot_sleep_0_3_thread.jpg",
+          "max_y": 0.3,
+          "graph_filter": {"scenario": "sleep", "server_worker": 3},
+          "line_filters": [
+              {"sleep_time": 0, "gunicorn_type": "gthread"},
+         ]},
+
+         {"file_path": "plot_sleep_0_3_gevent.jpg",
+          "max_y": 0.3,
+          "graph_filter": {"scenario": "sleep", "server_worker": 3},
+          "line_filters": [
+              {"sleep_time": 0, "gunicorn_type": "gevent"},
+         ]},
+
+
          {"file_path": "plot_sleep_2_1.jpg",
+          "max_y": 120,
+          "graph_filter": {"scenario": "sleep", "server_worker": 1},
+          "line_filters": [
+              {"sleep_time": 2, "gunicorn_type": "gthread"},
+         ]},
+         {"file_path": "plot_sleep_2_1_gevent.jpg",
           "max_y": 120,
           "graph_filter": {"scenario": "sleep", "server_worker": 1},
           "line_filters": [
@@ -226,7 +260,7 @@ def plot_threads_vs_duration(file_path, graph_filter, line_filters, max_y):
         plt.tight_layout()
         plt.savefig(file_path, format="jpg")
         print(f"Created '{file_path}'")
-
+        plt.close()
 
 
 main()
