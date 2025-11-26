@@ -28,14 +28,9 @@ def create_tile_from_tiff(variable, dataset, date_start, x, y, z, target_resolut
         subgrid = subgrid[0, 0, :, :]
     elif len(subgrid.shape) == 3:
         subgrid = subgrid[0, :, :]
-    subgrid = np.flip(subgrid, 0)        
-    print("Tile x/y/z", x, y, z)
-    print("Variable/Dataset", variable, dataset)
-    print("Target resolution", target_resolution)
-    print("GRID", grid)
-    print("Grid Bounds", grid_bounds)
-    print("Subgrid shape", subgrid.shape)
-    print_data(subgrid, x_incr=64, y_incr=64)
+    #subgrid = np.flip(subgrid, 0)
+    #print("Subgrid shape", subgrid.shape)
+    #print_data(subgrid, first=12, x_incr=256, y_incr=64)
     # Create crs and transforms
     dst_crs = "EPSG:3857"
     src_crs = pyproj.CRS.from_proj4(grid_crs)
@@ -43,8 +38,6 @@ def create_tile_from_tiff(variable, dataset, date_start, x, y, z, target_resolut
     src_transform = get_src_transform(grid, grid_bounds)
     dst_transform = rasterio.transform.from_bounds(tile_minx, tile_miny, tile_maxx, tile_maxy, width=target_resolution, height=target_resolution)
 
-    print("dst_transform", dst_transform)
-    print("src_transform", src_transform)
     # Reproject subset
     rasterio.warp.reproject(
         source=subgrid,
@@ -67,22 +60,14 @@ def create_tile_from_tiff(variable, dataset, date_start, x, y, z, target_resolut
 
 def get_src_transform(grid, grid_bounds):
     """Construct the src_transform between the pixel of the grid_bounds to the LCC meters"""
-    print("COMPUTE GRID", grid)
     grid_obj = hf.get_table_row("grid", id=grid)
-    print(grid_obj)
     lcc_origin = grid_obj.get("origin")
     origin_x = lcc_origin[0]
     origin_y = lcc_origin[1]
-    print("GRID ORIGIN", origin_x, origin_y)
     px = grid_bounds[0]
     py = grid_bounds[1]
     pixel_resolution = float(grid_obj.get("resolution_meters"))
-    print("PIXEL RESOLUTION", pixel_resolution)
-    top_left_x = px * pixel_resolution - origin_x
-    top_left_y = py * pixel_resolution - origin_y
-    #src_transform = affine.Affine(pixel_resolution, 0, -origin_x, 0, pixel_resolution, -origin_y)
-    src_transform = affine.Affine(pixel_resolution, 0, px * pixel_resolution + origin_x, 0, pixel_resolution, py * pixel_resolution + origin_y)
-    #src_transform = affine.Affine(pixel_resolution, 0, 0, 0, pixel_resolution, 0)
+    src_transform = affine.Affine(pixel_resolution, 0, px * pixel_resolution + origin_x + 1000, 0, pixel_resolution, py * pixel_resolution + origin_y - 1000)
     return src_transform
 
 
@@ -128,20 +113,29 @@ def get_tile_bounds(x, y, z):
     xy_bounds = mercantile.xy_bounds(tile)
     return xy_bounds.left, xy_bounds.bottom, xy_bounds.right, xy_bounds.top
 
-def print_data(subgrid, x_incr=64, y_incr=64):
+def print_data(subgrid, first=None, x_incr=64, y_incr=64):
+    if first:
+        for row in range(0, first):
+            val = subgrid[row, 0:17]
+            print(f"[{row}, 0:17]")
+            print(val)
     for row in range(0, subgrid.shape[0], y_incr):
         for col in range(0, subgrid.shape[1], x_incr):
             val = subgrid[row, col]
             print(f"[{row},{col}] = {val}")
         print(f"[{row}, {subgrid.shape[1]-1}] = {subgrid[row, subgrid.shape[1]-1]}")
     print(f"[{subgrid.shape[0]-1}, 0] = {subgrid[subgrid.shape[0]-1,0]}")
+    print(f"[{subgrid.shape[0]-1}, 1] = {subgrid[subgrid.shape[0]-1,1]}")
+    print(f"[{subgrid.shape[0]-1}, 2] = {subgrid[subgrid.shape[0]-1,2]}")
+    print(f"[{subgrid.shape[0]-1}, 3] = {subgrid[subgrid.shape[0]-1,3]}")
+    print(f"[{subgrid.shape[0]-1}, 4] = {subgrid[subgrid.shape[0]-1,4]}")
     print(f"[{subgrid.shape[0]-1}, {subgrid.shape[1]-1}] = {subgrid[subgrid.shape[0]-1,subgrid.shape[1]-1]}")
 
 
 def test_tile():
     variable = "soil_moisture"
     dataset = "conus2_current_conditions"
-    date_start="2025-08-21"
+    date_start="2025-11-21"
     x = 6
     y = 12
     z = 5
