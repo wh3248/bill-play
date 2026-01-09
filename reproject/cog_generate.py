@@ -1,25 +1,44 @@
 
+"""
+Generate a COG from an standard tiff file with projection.
+Specify the input tiff and the output COG on the command line.
+
+This requires python packages:
+    rio
+    rio-cogeo
+These are both available in parflow-shared.
+
+Curiously the output COG is smaller that an input tiff for the 30m WTD tiff
+    TIFF SIZE:  36,629,642,613 bytes = 36 GB
+    COG SIZE:   19,197,452,109 bytes = 19 GB
+
+"""
+
 import sys
 import time
 import subprocess
 
-input_tif = "/hydrodata/temp/high_resolution_data/WTD_estimates/30m/compressed_data/wtd_mean_estimate_RF_additional_inputs_dummy_drop0LP_1s_CONUS2_m_remapped_unflip_compressed.tif"
-output_cog = "us_30m_cog.tif"
-output_dir= "/scratch/network/wh3248"
-output_cog = f"{output_dir}/wtd_mean_cog.tif"
-# Input 36,629,642,613 bytes = 36 GB
-# Output 19,197,452,109 bytes = 19 GB
+if len(sys.argv) < 3:
+    print("Specify input_tiff and output_cog on command line");
+    sys.exit(0)
+input_tif = sys.argv[1]
+output_cog = sys.argv[2]
+print("Generate COG")
+print("INPUT", input_tif)
+print("OUTPUT", output_cog)
 
-print(f"Input file = '{input_tif}'")
-print(f"Output file = '{output_cog}'")
 sys.stdout.flush()
 time.sleep(1)
 
 # Use rio-cogeo to create a COG
+# Specify --overview-level to add pyramids to support zooming
+# Specify --web-optimized to align supgrids in COG to mercantile tile grids
+start_time = time.time()
 subprocess.run([
     "rio", "cogeo", "create",
     input_tif, output_cog,
-    "--overview-level", "5",  # Add pyramids for zooming
-    "--web-optimized"         # Optimize for web
+    "--overview-level", "5",
+    "--web-optimized"
 ])
-print(f"COG created: {output_cog}")
+duration_min = round((time.time() - start_time)/60, 2)
+print(f"COG created in {duration_min} minutes")

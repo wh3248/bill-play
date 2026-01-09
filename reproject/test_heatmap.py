@@ -18,7 +18,7 @@ def create_tile_from_tiff(variable, dataset, date_start, x, y, z, target_resolut
     grid_crs, origin, resolution = get_grid_crs(grid)
 
     # Get Subgrid
-    padding = 10
+    padding = 100
     grid_bounds[0] = grid_bounds[0] - padding
     grid_bounds[1] = grid_bounds[1] - padding
     grid_bounds[2] = grid_bounds[2] + padding
@@ -37,7 +37,7 @@ def create_tile_from_tiff(variable, dataset, date_start, x, y, z, target_resolut
     dst_array = np.zeros((target_resolution, target_resolution), dtype="float32")
     src_transform = get_src_transform(grid, grid_bounds)
     dst_transform = rasterio.transform.from_bounds(tile_minx, tile_miny, tile_maxx, tile_maxy, width=target_resolution, height=target_resolution)
-
+ 
     # Reproject subset
     rasterio.warp.reproject(
         source=subgrid,
@@ -147,7 +147,10 @@ def test_tile():
     z = 7
     #x = 56899
     #y = 103089
-    #z = 18    
+    #z = 18
+    x = 6
+    y = 12
+    z = 5
     target_resolution = 128
     data = create_tile_from_tiff(variable, dataset, date_start, x, y, z, target_resolution)
     # Bot left 6/12/5 WTD is 772,922 WTD=0.07 Lat/lng 31.7, -112 to Top, Right 40.7, -101.2
