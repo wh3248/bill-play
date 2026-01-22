@@ -1,0 +1,394 @@
+
+import math
+import zlib
+from dataclasses import dataclass
+from typing import Dict, Tuple, Optional, Iterable
+
+import numpy as np
+import requests
+import tifffile
+from pyproj import CRS, Transformer
+
+
+# ----------------------------
+# HTTP Range reader with cache
+# ----------------------------
+
+class HTTPRangeReader:
+    """
+    Minimal file-like object that supports random access reads via HTTP Range GET,
+    using requests.get(). Includes a simple block cache to avoid repeated GETs.
+
+    tifffile will call .seek()/.read() many times to parse IFDs/tags, etc.
+    """
+    def __init__(self, url: str, block_size: int = 1 << 20, session: Optional[requests.Session] = None):
+        self.url = url
+        self.block_size = int(block_size)
+        self.sess = session or requests.Session()
+
+        # Probe server support and file size
+        head = self.sess.head(url, allow_redirects=True)
+        head.raise_for_status()
+
+        accept_ranges = head.headers.get("Accept-Ranges", "")
+        if "bytes" not in accept_ranges.lower():
+            raise RuntimeError(f"Server does not advertise byte range support (Accept-Ranges={accept_ranges!r})")
+
+        cl = head.headers.get("Content-Length")
+        self.size = int(cl) if cl is not None else None  # can be None for chunked responses
+
+        self._pos = 0
+        self._cache: Dict[int, bytes] = {}  # block_index -> bytes
+
+    def tell(self) -> int:
+        return self._pos
+
+    def seek(self, offset: int, whence: int = 0) -> int:
+        if whence == 0:      # absolute
+            self._pos = int(offset)
+        elif whence == 1:    # relative
+            self._pos += int(offset)
+        elif whence == 2:    # from end
+            if self.size is None:
+                raise RuntimeError("Cannot seek from end: unknown Content-Length")
+            self._pos = self.size + int(offset)
+        else:
+            raise ValueError("Invalid whence")
+        return self._pos
+
+    def read(self, n: int = -1) -> bytes:
+        if n == 0:
+            return b""
+
+        if n < 0:
+            if self.size is None:
+                raise RuntimeError("Cannot read to EOF: unknown Content-Length")
+            end = self.size
+        else:
+            end = self._pos + n
+
+        data = self._read_range(self._pos, end)
+        self._pos = end
+        return data
+
+    def _read_range(self, start: int, end: int) -> bytes:
+        """
+        Read [start, end) bytes.
+        """
+        if end <= start:
+            return b""
+
+        # Fetch in aligned blocks for caching
+        bs = self.block_size
+        first_block = start // bs
+        last_block = (end - 1) // bs
+
+        chunks = []
+        for bidx in range(first_block, last_block + 1):
+            if bidx not in self._cache:
+                bstart = bidx * bs
+                bend = bstart + bs - 1  # Range is inclusive
+                # If we know size, clamp
+                if self.size is not None:
+                    bend = min(bend, self.size - 1)
+
+                headers = {"Range": f"bytes={bstart}-{bend}"}
+                r = self.sess.get(self.url, headers=headers, stream=False, allow_redirects=True)
+                r.raise_for_status()
+                # Expect 206 Partial Content for a successful range request
+                if r.status_code != 206:
+                    raise RuntimeError(f"Expected 206 Partial Content, got {r.status_code}")
+                self._cache[bidx] = r.content
+
+            chunks.append(self._cache[bidx])
+
+        blob = b"".join(chunks)
+        # Slice to exact requested sub-range
+        offset0 = start - first_block * bs
+        offset1 = offset0 + (end - start)
+        return blob[offset0:offset1]
+
+
+# ----------------------------
+# GeoTIFF helpers
+# ----------------------------
+
+def _geotiff_crs_from_page(page: tifffile.TiffPage) -> CRS:
+    """
+    Derive a pyproj CRS from GeoTIFF GeoKeys if possible.
+    Prefers EPSG projected/geographic codes when present.
+    """
+    geokeys = page.geotiff_geokeys  # dict-like
+    # Common keys: ProjectedCSTypeGeoKey, GeographicTypeGeoKey
+    pcs = geokeys.get("ProjectedCSTypeGeoKey")
+    gcs = geokeys.get("GeographicTypeGeoKey")
+
+    # Many GeoTIFFs store EPSG codes here; pyproj accepts EPSG:<code>
+    if pcs and isinstance(pcs, int) and pcs not in (0, 32767):
+        return CRS.from_epsg(pcs)
+    if gcs and isinstance(gcs, int) and gcs not in (0, 32767):
+        return CRS.from_epsg(gcs)
+
+    # Fallback: attempt WKT if present (some writers embed it)
+    wkt = geokeys.get("PCSCitationGeoKey") or geokeys.get("GTCitationGeoKey")
+    if isinstance(wkt, str) and ("PROJCS" in wkt or "GEOGCS" in wkt):
+        return CRS.from_wkt(wkt)
+
+    raise RuntimeError("Unable to derive CRS from GeoTIFF GeoKeys (no usable EPSG/WKT found).")
+
+
+@dataclass(frozen=True)
+class GeoTransform:
+    """
+    Simple north-up affine transform:
+      X = x0 + col * a
+      Y = y0 + row * e
+    For typical north-up GeoTIFFs, a > 0 and e < 0.
+    """
+    x0: float
+    a: float
+    y0: float
+    e: float
+
+    def xy(self, col: float, row: float) -> Tuple[float, float]:
+        return (self.x0 + col * self.a, self.y0 + row * self.e)
+
+    def colrow(self, x: float, y: float) -> Tuple[float, float]:
+        col = (x - self.x0) / self.a
+        row = (y - self.y0) / self.e
+        return col, row
+
+
+def _geotransform_from_page(page: tifffile.TiffPage) -> GeoTransform:
+    """
+    Build a simple affine geotransform from ModelTiepointTag + ModelPixelScaleTag
+    for north-up images, or from ModelTransformationTag if present.
+    """
+    tags = page.tags
+
+    # If ModelTransformationTag exists, it provides a full 4x4 transform.
+    # For simplicity we handle the common north-up case with PixelScale+Tiepoint.
+    if "ModelTransformationTag" in tags:
+        mt = np.array(tags["ModelTransformationTag"].value, dtype=float).reshape(4, 4)
+        # Convert matrix to affine (assumes no rotation/shear)
+        # X = mt[0,0]*col + mt[0,3], Y = mt[1,1]*row + mt[1,3]
+        x0 = float(mt[0, 3])
+        y0 = float(mt[1, 3])
+        a = float(mt[0, 0])
+        e = float(mt[1, 1])
+        return GeoTransform(x0=x0, a=a, y0=y0, e=e)
+
+    if "ModelTiepointTag" not in tags or "ModelPixelScaleTag" not in tags:
+        raise RuntimeError("Missing georeferencing tags (need ModelTiepointTag + ModelPixelScaleTag or ModelTransformationTag)")
+
+    tiepoints = tags["ModelTiepointTag"].value
+    # Tiepoints come in sets of 6: (i, j, k, x, y, z)
+    # Use the first tiepoint
+    i, j, _k, x, y, _z = map(float, tiepoints[:6])
+
+    scale = tags["ModelPixelScaleTag"].value
+    sx, sy, _sz = map(float, scale[:3])
+
+    # For north-up rasters: col increases east, row increases downward,
+    # so Y decreases as row increases => e = -sy
+    x0 = x - i * sx
+    y0 = y + j * sy
+    a = sx
+    e = -sy
+    return GeoTransform(x0=x0, a=a, y0=y0, e=e)
+
+
+def _dtype_from_page(page: tifffile.TiffPage) -> np.dtype:
+    bits = page.bitspersample
+    if isinstance(bits, tuple):
+        bits = bits[0]
+    sampleformat = getattr(page, "sampleformat", 1)  # 1=uint, 2=int, 3=float (typical)
+    if isinstance(sampleformat, tuple):
+        sampleformat = sampleformat[0]
+
+    if sampleformat == 1:
+        return np.dtype(f"uint{bits}")
+    if sampleformat == 2:
+        return np.dtype(f"int{bits}")
+    if sampleformat == 3:
+        return np.dtype("float32" if bits == 32 else "float64")
+    raise RuntimeError(f"Unsupported SampleFormat={sampleformat}, BitsPerSample={bits}")
+
+
+# ----------------------------
+# Tile fetching & window read
+# ----------------------------
+
+def _decompress_tile(compression: int, data: bytes) -> bytes:
+    # TIFF Compression tag: 1 = none, 8 = deflate (Adobe-style), 32946 = deflate (often seen)
+    if compression in (1,):
+        return data
+    if compression in (8, 32946):
+        return zlib.decompress(data)
+    raise RuntimeError(f"Unsupported compression={compression} (this sample supports NONE and DEFLATE only)")
+
+
+def read_cog_window_latlon(
+    url: str,
+    lat_min: float, lon_min: float,
+    lat_max: float, lon_max: float,
+    *,
+    overview: int = 0,
+    block_cache_size: int = 1 << 20,
+) -> Tuple[np.ndarray, CRS, GeoTransform]:
+    """
+    Read pixels from a remote COG URL for a lat/lon bounding box without downloading the full file.
+
+    Returns (array, dataset_crs, geotransform_for_selected_image_level)
+
+    Parameters:
+      overview=0 reads the full-res IFD/page. overview=1 reads the first overview, etc.
+    """
+    sess = requests.Session()
+    f = HTTPRangeReader(url, block_size=block_cache_size, session=sess)
+
+    with tifffile.TiffFile(f) as tif:
+        # Choose page: 0 is full-res in many COGs, but not guaranteed.
+        # Many COGs store full-res as first IFD, with overviews after; check your files.
+        page = tif.pages[overview]
+
+        crs = _geotiff_crs_from_page(page)
+        gt = _geotransform_from_page(page)
+
+        # Transform lat/lon bounds into dataset CRS
+        to_ds = Transformer.from_crs(CRS.from_epsg(4326), crs, always_xy=True)
+        x1, y1 = to_ds.transform(lon_min, lat_min)
+        x2, y2 = to_ds.transform(lon_max, lat_max)
+
+        xmin, xmax = (min(x1, x2), max(x1, x2))
+        ymin, ymax = (min(y1, y2), max(y1, y2))
+
+        # Convert projected bounds to pixel bounds
+        c0, r0 = gt.colrow(xmin, ymax)  # upper-left
+        c1, r1 = gt.colrow(xmax, ymin)  # lower-right
+
+        col0 = int(math.floor(min(c0, c1)))
+        col1 = int(math.ceil(max(c0, c1)))
+        row0 = int(math.floor(min(r0, r1)))
+        row1 = int(math.ceil(max(r0, r1)))
+
+        # Clamp to image size
+        height = int(page.imagelength)
+        width = int(page.imagewidth)
+        col0 = max(0, min(width, col0))
+        col1 = max(0, min(width, col1))
+        row0 = max(0, min(height, row0))
+        row1 = max(0, min(height, row1))
+
+        if col1 <= col0 or row1 <= row0:
+            raise ValueError("Requested bounds do not intersect the raster")
+
+        win_w = col1 - col0
+        win_h = row1 - row0
+
+        # Ensure tiled
+        if not page.is_tiled:
+            raise RuntimeError("This example expects a tiled GeoTIFF (COGs are typically tiled).")
+
+        tw = int(page.tilewidth)
+        th = int(page.tilelength)
+
+        tiles_across = (width + tw - 1) // tw
+        tiles_down = (height + th - 1) // th
+
+        # Tile offsets & bytecounts
+        # tifffile exposes these via tags for TIFF tiled images
+        tile_offsets = page.tags["TileOffsets"].value
+        tile_bytecounts = page.tags["TileByteCounts"].value
+
+        compression = int(page.compression.value) if hasattr(page.compression, "value") else int(page.compression)
+        dtype = _dtype_from_page(page)
+        spp = int(getattr(page, "samplesperpixel", 1))
+        planar = int(getattr(page, "planarconfig", 1))  # 1=contig, 2=separate
+
+        if planar != 1:
+            raise RuntimeError("This example supports PlanarConfiguration=contig only.")
+
+        # Allocate output
+        if spp == 1:
+            out = np.zeros((win_h, win_w), dtype=dtype)
+        else:
+            out = np.zeros((win_h, win_w, spp), dtype=dtype)
+
+        # Determine which tiles intersect the window
+        tile_col0 = col0 // tw
+        tile_col1 = (col1 - 1) // tw
+        tile_row0 = row0 // th
+        tile_row1 = (row1 - 1) // th
+
+        for tr in range(tile_row0, tile_row1 + 1):
+            for tc in range(tile_col0, tile_col1 + 1):
+                tile_index = tr * tiles_across + tc
+                off = int(tile_offsets[tile_index])
+                nbytes = int(tile_bytecounts[tile_index])
+
+                # Fetch exactly the tile byte range
+                raw = f._read_range(off, off + nbytes)
+                decoded = _decompress_tile(compression, raw)
+
+                # Interpret tile bytes
+                # Tile buffer contains th*tw pixels (except edge tiles), with spp samples each
+                # TIFF stores row-major order.
+                # Edge tiles may be smaller in image extent, but stored as full tile in many writers.
+                tile_arr = np.frombuffer(decoded, dtype=dtype)
+
+                if spp == 1:
+                    tile_arr = tile_arr.reshape(th, tw)
+                else:
+                    tile_arr = tile_arr.reshape(th, tw, spp)
+
+                # Compute overlap between this tile and requested window in pixel coords
+                tile_x0 = tc * tw
+                tile_y0 = tr * th
+                tile_x1 = min(tile_x0 + tw, width)
+                tile_y1 = min(tile_y0 + th, height)
+
+                ov_x0 = max(col0, tile_x0)
+                ov_y0 = max(row0, tile_y0)
+                ov_x1 = min(col1, tile_x1)
+                ov_y1 = min(row1, tile_y1)
+
+                if ov_x1 <= ov_x0 or ov_y1 <= ov_y0:
+                    continue
+
+                # Slices within tile
+                tsx0 = ov_x0 - tile_x0
+                tsy0 = ov_y0 - tile_y0
+                tsx1 = tsx0 + (ov_x1 - ov_x0)
+                tsy1 = tsy0 + (ov_y1 - ov_y0)
+
+                # Slices within output window
+                osx0 = ov_x0 - col0
+                osy0 = ov_y0 - row0
+                osx1 = osx0 + (ov_x1 - ov_x0)
+                osy1 = osy0 + (ov_y1 - ov_y0)
+
+                out[osy0:osy1, osx0:osx1, ...] = tile_arr[tsy0:tsy1, tsx0:tsx1, ...]
+
+        return out, crs, gt
+
+
+if __name__ == "__main__":
+    # Example usage:
+    url = "https://example.com/some.tif"  # must be a COG with Accept-Ranges: bytes
+
+    # Princeton-ish bbox example (replace with your bounds)
+    lat_min, lon_min = 40.33, -74.72
+    lat_max, lon_max = 40.36, -74.64
+
+    arr, crs, gt = read_cog_window_latlon(
+        url,
+        lat_min, lon_min,
+        lat_max, lon_max,
+        overview=0,
+        block_cache_size=1 << 20,  # 1 MiB cache blocks
+    )
+
+    print("Array shape:", arr.shape)
+    print("Dataset CRS:", crs)
+    print("GeoTransform:", gt)
