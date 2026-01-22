@@ -10,9 +10,8 @@ def main():
     data = np.zeros((10, 10))
     file_name = "foo.tiff"
     grid = "conus2"
-    print("grid")
-    return
     write_tiff_file(data, file_name, grid)
+    print("Write tiff")
 
 def write_tiff_file(
     data: np.ndarray, file_name, grid

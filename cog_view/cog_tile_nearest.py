@@ -16,6 +16,7 @@ import rasterio
 from affine import Affine
 from rasterio.enums import Resampling
 from rasterio.warp import reproject
+import write_tiff
 import time
 
 def read_mercantile_tile(
@@ -127,3 +128,4 @@ if __name__ == "__main__":
     duration = time.time() - start_timer
     print("DURATION", duration)
     print(tile.shape, tile.dtype)
+    write_tiff.write_tiff_file(tile, "tile.tiff", "conus2_wtd.30")
