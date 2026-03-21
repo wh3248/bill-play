@@ -16,6 +16,7 @@ def main():
             print("UNIT Y DIFFS", np.diff(ds.y[:5].values))
             print()
             print("CRS ATTRS", ds["crs"].attrs)
+            print("VALUE 0,0 =", ds["water_table_depth"].values[0,0,0])
         except Exception as e:
             print(f"Unable to read {path}")
         print()
