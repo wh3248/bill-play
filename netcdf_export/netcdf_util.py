@@ -95,8 +95,7 @@ def generate_netcdf_file(
         "f4",
         dimension_names,
         zlib=True,
-        complevel=4,
-        fill_value=np.nan,
+        complevel=4
     )
     var.long_name = entry.get("variable")
     var.units = f"{dx} meters"
