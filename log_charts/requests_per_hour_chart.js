@@ -13,52 +13,7 @@ export function formatHourLabel(date) {
   return date.toISOString().slice(0, 13).replace('T', ' ') + ':00';
 }
 
-function parseCsvTime(value) {
-  if (!value) {
-    return null;
-  }
-  const normalized = value.trim().replace(/\s+/g, ' ');
-  const parsed = new Date(normalized);
-  return isNaN(parsed) ? null : parsed;
-}
 
-export function createHourlyBuckets(rows) {
-  const counts = new Map();
-  let minDate = null;
-  let maxDate = null;
-
-  rows.forEach(row => {
-    const timeValue = row.time || row['time'];
-    const date = parseCsvTime(timeValue);
-    if (!date) {
-      return;
-    }
-
-    date.setMinutes(0, 0, 0);
-    const hourKey = formatHourLabel(date);
-    counts.set(hourKey, (counts.get(hourKey) || 0) + 1);
-
-    if (!minDate || date < minDate) minDate = new Date(date);
-    if (!maxDate || date > maxDate) maxDate = new Date(date);
-  });
-
-  if (!minDate || !maxDate) {
-    return { labels: [], values: [] };
-  }
-
-  const labels = [];
-  const values = [];
-  const cursor = new Date(minDate);
-
-  while (cursor <= maxDate) {
-    const label = formatHourLabel(cursor);
-    labels.push(label);
-    values.push(counts.get(label) || 0);
-    cursor.setHours(cursor.getHours() + 1);
-  }
-
-  return { labels, values };
-}
 
 function updateSliderLabels() {
   startLabel.textContent = allLabels[currentStartIndex] || '—';
