@@ -103,7 +103,10 @@ def add_time_coordinate(
 
     if temporal_resolution in ["daily", "hourly", "monthly", "weekly"]:
         date_start_str = get_date_start(query_parameters)
-        date_start = datetime.datetime.strptime(date_start_str, "%Y-%m-%d")
+        if ":" in date_start_str:
+            date_start = datetime.datetime.strptime(date_start_str, "%Y-%m-%d %H:%M:%S")
+        else:
+            date_start = datetime.datetime.strptime(date_start_str, "%Y-%m-%d")
         time_steps = data.shape[0]
 
         dates = []

@@ -56,7 +56,7 @@ def generate_netcdf_file(
     # -----------------------------
     # Create CF-compliant NetCDF
     # -----------------------------
-    nc = netCDF4.Dataset(filename, "w", format="NETCDF4")
+    nc = netCDF4.Dataset(filename, "w", format="NETCDF3_CLASSIC")
 
     # Dimensions
     nc.createDimension("x", nx)
@@ -125,7 +125,10 @@ def create_time_variable(
 
     if temporal_resolution in ["daily", "hourly", "monthly", "weekly"]:
         date_start_str = get_date_start(query_parameters)
-        date_start = datetime.datetime.strptime(date_start_str, "%Y-%m-%d")
+        if ":" in date_start_str:
+            date_start = datetime.datetime.strptime(date_start_str, "%Y-%m-%d %H:%M:%S")
+        else:
+            date_start = datetime.datetime.strptime(date_start_str, "%Y-%m-%d")
         time_steps = data.shape[0]
 
         time_var = nc.createVariable("time", "f8", ("time",))

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="preload" href="./chart.css" as="style"/>
+  <title>Request Volume by Hour</title>
+  <script src="https://cdn.plot.ly/plotly-2.28.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+</head>
+<body>
+  <main>
+    <div id="chart"></div>
+    <div class="note" id="controls">
+      <div style="display: grid; gap: 12px;">
+        <div>
+          <label for="startSlider"><strong>Start hour:</strong> <span id="startLabel">—</span></label>
+          <input type="range" id="startSlider" min="0" max="0" value="0" style="width: 100%; margin-top: 6px;" />
+        </div>
+        <div>
+          <label for="endSlider"><strong>End hour:</strong> <span id="endLabel">—</span></label>
+          <input type="range" id="endSlider" min="0" max="0" value="0" style="width: 100%; margin-top: 6px;" />
+        </div>
+      </div>
+    </div>
+    <div id="status">Loading data ...</div>
+    <div class="note">
+      <strong>Usage:</strong> Host this file alongside <code>all_entries_2026-03.csv</code> on a static server.
+      The page reads the CSV from the same folder and displays request counts per hour.
+    </div>
+  </main>
+  <script type="module">
+    import { loadCsv } from './load_csv.js';
+    import { requestsPerHourChart } from './requests_per_hour_chart.js';
+
+    const ids = {
+      chartId: 'chart',
+      statusId: 'status',
+      startSliderId: 'startSlider',
+      endSliderId: 'endSlider',
+      startLabelId: 'startLabel',
+      endLabelId: 'endLabel',
+    };
+
+    loadCsv('all_entries_2026-03.csv')
+      .then(bucketed => requestsPerHourChart(ids, bucketed.labels, bucketed.values, bucketed.rowCount))
+      .catch(error => {
+        const status = document.getElementById('status');
+        status.textContent = error.message;
+        status.classList.add('error');
+        console.error(error);
+      });
+  </script>
+</body>
+</html>
