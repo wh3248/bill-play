@@ -3,11 +3,11 @@ let allValues = [];
 let rowCount = 0;
 let currentStartIndex = 0;
 let currentEndIndex = 0;
-let statusId;
 let startSlider;
 let endSlider;
 let startLabel;
 let endLabel;
+let statusElement;
 
 let callBackList = [];
 
@@ -23,22 +23,23 @@ export function addTimeSliderCallBack(callBack) {
 }
 
 /*
- * Get ther slide labels, values in start/end index of slider position.
+ * Get the slider labels, values in start/end index of slider position.
  * Returns:
  *   A list [allLabels, allValues, currentStartIndex, currentEndIndex]
  */
-export function getLabels() {
+export function getSliderState() {
     return [allLabels, allValues, currentStartIndex, currentEndIndex]
 }
 
 export function timeSliderHandler(chartViewConfig, allLabelsArg, allValuesArg, rowCountArg) {
     allLabels = allLabelsArg;
-    allValuesArg = allValuesArg;
+    allValues = allValuesArg;
     rowCount = rowCountArg;
     startSlider = document.getElementById(chartViewConfig.startSliderId);
     endSlider = document.getElementById(chartViewConfig.endSliderId);
     startLabel = document.getElementById(chartViewConfig.startLabelId);
     endLabel = document.getElementById(chartViewConfig.endLabelId);
+    statusElement = document.getElementById(chartViewConfig.statusId);
 
     if (!startSlider || !endSlider || !startLabel || !endLabel) {
         throw new Error('Unable to initialize chart controls: one or more element IDs are invalid.');
@@ -52,6 +53,8 @@ export function timeSliderHandler(chartViewConfig, allLabelsArg, allValuesArg, r
     endSlider.max = allLabels.length - 1;
     startSlider.value = currentStartIndex;
     endSlider.value = currentEndIndex;
+    startSlider.addEventListener('input', () => updateTimeRange(true));
+    endSlider.addEventListener('input', () => updateTimeRange(false));
     
 }
 
@@ -75,8 +78,11 @@ function updateTimeRange(isStartChanged) {
   }
 
   updateSliderLabels();
+  callBackList.forEach(callBack => {
+    callBack();
+  })
   renderChart();
-  document.getElementById(statusId).textContent =
+  statusElement.textContent =
     `Displaying ${currentEndIndex - currentStartIndex + 1} hours from ${allLabels[currentStartIndex]} to ${allLabels[currentEndIndex]}.`;
 }
 

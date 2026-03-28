@@ -48,7 +48,6 @@
     <script type="module">
         import { loadCsv } from './load_csv.js';
         import { requestsPerHourChart } from './requests_per_hour_chart.js';
-        import { requestsPerHourChart2 } from './requests_per_hour_chart_2.js';
         import { timeSliderHandler } from './controls_handler.js';
         const chartViewConfig = {
             startSliderId: 'startSlider',
@@ -64,16 +63,7 @@
                     endSliderId: 'endSlider',
                     startLabelId: 'startLabel',
                     endLabelId: 'endLabel',
-                },
-                {
-                    chartId: "chart_2",
-                    chartFunction: requestsPerHourChart2,
-                    statusId: 'status',
-                    startSliderId: 'startSlider',
-                    endSliderId: 'endSlider',
-                    startLabelId: 'startLabel',
-                    endLabelId: 'endLabel',
-                },
+                }
             ]
         };
         const bucketSizeElement = document.getElementById("bucketSize");
@@ -85,7 +75,7 @@
                 timeSliderHandler(chartViewConfig, bucketResults.labels, bucketResults.values, bucketResults.rowCount);
                 chartViewConfig.charts.forEach(element => {
                     console.log(element);
-                    element.chartFunction(element, bucketResults.labels, bucketResults.values, bucketResults.rowCount);
+                    element.chartFunction(element.chartId);
                 });
             })
             .catch(error => {
