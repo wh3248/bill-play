@@ -76,13 +76,13 @@
                 },
             ]
         };
-        timeSliderHandler(chartViewConfig);
         const bucketSizeElement = document.getElementById("bucketSize");
         console.log(bucketSizeElement);
-        let bucketSizeValue = "daily";
+        let bucketSizeValue = "hourly";
         console.log(bucketSizeValue);
         loadCsv('cleaned_logs.csv', bucketSizeValue)
             .then(bucketResults => {
+                timeSliderHandler(chartViewConfig, bucketResults.labels, bucketResults.values, bucketResults.rowCount);
                 chartViewConfig.charts.forEach(element => {
                     console.log(element);
                     element.chartFunction(element, bucketResults.labels, bucketResults.values, bucketResults.rowCount);
