@@ -9,11 +9,6 @@ let endSlider;
 let startLabel;
 let endLabel;
 
-export function formatHourLabel(date) {
-  return date.toISOString().slice(0, 13).replace('T', ' ') + ':00';
-}
-
-
 
 function updateSliderLabels() {
   startLabel.textContent = allLabels[currentStartIndex] || '—';

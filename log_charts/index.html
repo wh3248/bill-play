@@ -19,6 +19,17 @@
         <div class="note" id="controls">
             <div style="display: grid; gap: 12px;">
                 <div>
+                    <strong>Bucket Size:</strong>
+                    <div style="display: flex; gap: 12px; margin-top: 6px;">
+                        <label>
+                            <input type="radio" name="bucketSize" value="daily" checked /> Daily
+                        </label>
+                        <label>
+                            <input type="radio" name="bucketSize" value="hourly" /> Hourly
+                        </label>
+                    </div>
+                </div>
+                <div>
                     <label for="startSlider"><strong>Start hour:</strong> <span id="startLabel">—</span></label>
                     <input type="range" id="startSlider" min="0" max="0" value="0"
                         style="width: 100%; margin-top: 6px;" />
@@ -35,6 +46,7 @@
     <script type="module">
         import { loadCsv } from './load_csv.js';
         import { requestsPerHourChart } from './requests_per_hour_chart.js';
+        import { requestsPerHourChart2 } from './requests_per_hour_chart_2.js';
 
         const ids = [{
             chartId: 'chart_1',
@@ -51,9 +63,12 @@
             endSliderId: 'endSlider',
             startLabelId: 'startLabel',
             endLabelId: 'endLabel',
-        }]
-        let dailyHourly = "daily";
-        loadCsv('cleaned_logs.csv', dailyHourly)
+        }];
+        const bucketSizeElement = document.getElementById("bucketSize");
+        console.log(bucketSizeElement);
+        const bucketSizeValue = "daily";
+        console.log(bucketSizeValue);
+        loadCsv('cleaned_logs.csv', bucketSizeValue)
             .then(bucketResults => { renderCharts(ids, bucketResults) })
             .catch(error => {
                 const status = document.getElementById('status');
@@ -64,7 +79,7 @@
 
         function renderCharts(ids, bucketResults) {
             requestsPerHourChart(ids[0], bucketResults.labels, bucketResults.values, bucketResults.rowCount)
-            requestsPerHourChart(ids[1], bucketResults.labels, bucketResults.values, bucketResults.rowCount)
+            requestsPerHourChart2(ids[1], bucketResults.labels, bucketResults.values, bucketResults.rowCount)
         }
     </script>
 </body>
