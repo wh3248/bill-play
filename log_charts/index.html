@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="preload" href="./chart.css" as="style" />
+    <link rel="stylesheet" href="./chart.css" />
     <title>Request Volume by Hour</title>
     <script src="https://cdn.plot.ly/plotly-2.28.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
@@ -12,12 +12,10 @@
 
 <body>
     <main>
-        <span>
-            <div id="chart_1"></div>
-        </span>
-        <span></span>
-            <div id="chart_2"></div>
-        </span>
+        <div class="chart-row">
+            <div id="chart_1" class="chart-item"></div>
+            <div id="chart_2" class="chart-item"></div>
+        </div>
         <div class="note" id="controls">
             <div style="display: grid; gap: 12px;">
                 <div>
@@ -54,8 +52,8 @@
             startLabelId: 'startLabel',
             endLabelId: 'endLabel',
         }]
-        let dailyHourly = "hourly";
-        loadCsv('all_entries_2026-03.csv', dailyHourly)
+        let dailyHourly = "daily";
+        loadCsv('cleaned_logs.csv', dailyHourly)
             .then(bucketResults => { renderCharts(ids, bucketResults) })
             .catch(error => {
                 const status = document.getElementById('status');
