@@ -5,8 +5,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="./chart.css" />
+
     <title>Request Volume by Hour</title>
     <script src="https://cdn.plot.ly/plotly-2.28.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 </head>
 
@@ -47,40 +49,51 @@
         import { loadCsv } from './load_csv.js';
         import { requestsPerHourChart } from './requests_per_hour_chart.js';
         import { requestsPerHourChart2 } from './requests_per_hour_chart_2.js';
-
-        const ids = [{
-            chartId: 'chart_1',
-            statusId: 'status',
+        import { timeSliderHandler } from './controls_handler.js';
+        const chartViewConfig = {
             startSliderId: 'startSlider',
             endSliderId: 'endSlider',
             startLabelId: 'startLabel',
             endLabelId: 'endLabel',
-        },
-        {
-            chartId: 'chart_2',
-            statusId: 'status',
-            startSliderId: 'startSlider',
-            endSliderId: 'endSlider',
-            startLabelId: 'startLabel',
-            endLabelId: 'endLabel',
-        }];
+            charts: [
+                {
+                    chartId: "chart_1",
+                    chartFunction: requestsPerHourChart,
+                    statusId: 'status',
+                    startSliderId: 'startSlider',
+                    endSliderId: 'endSlider',
+                    startLabelId: 'startLabel',
+                    endLabelId: 'endLabel',
+                },
+                {
+                    chartId: "chart_2",
+                    chartFunction: requestsPerHourChart2,
+                    statusId: 'status',
+                    startSliderId: 'startSlider',
+                    endSliderId: 'endSlider',
+                    startLabelId: 'startLabel',
+                    endLabelId: 'endLabel',
+                },
+            ]
+        };
+        timeSliderHandler(chartViewConfig);
         const bucketSizeElement = document.getElementById("bucketSize");
         console.log(bucketSizeElement);
-        const bucketSizeValue = "daily";
+        let bucketSizeValue = "daily";
         console.log(bucketSizeValue);
         loadCsv('cleaned_logs.csv', bucketSizeValue)
-            .then(bucketResults => { renderCharts(ids, bucketResults) })
+            .then(bucketResults => {
+                chartViewConfig.charts.forEach(element => {
+                    console.log(element);
+                    element.chartFunction(element, bucketResults.labels, bucketResults.values, bucketResults.rowCount);
+                });
+            })
             .catch(error => {
                 const status = document.getElementById('status');
                 status.textContent = error.message;
                 status.classList.add('error');
                 console.error(error);
             });
-
-        function renderCharts(ids, bucketResults) {
-            requestsPerHourChart(ids[0], bucketResults.labels, bucketResults.values, bucketResults.rowCount)
-            requestsPerHourChart2(ids[1], bucketResults.labels, bucketResults.values, bucketResults.rowCount)
-        }
     </script>
 </body>
 
