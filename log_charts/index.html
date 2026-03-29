@@ -47,7 +47,7 @@
     </main>
     <script type="module">
         import { loadCsv } from './load_csv.js';
-        import { requestsPerHourChart } from './requests_per_hour_chart.js';
+        import { requestsPerTimeChart } from './requests_per_time_chart.js';
         import { timeSliderHandler } from './controls_handler.js';
         const chartViewConfig = {
             startSliderId: 'startSlider',
@@ -57,7 +57,7 @@
             charts: [
                 {
                     chartId: "chart_1",
-                    chartFunction: requestsPerHourChart,
+                    chartFunction: requestsPerTimeChart,
                     statusId: 'status',
                     startSliderId: 'startSlider',
                     endSliderId: 'endSlider',
@@ -69,7 +69,7 @@
         let bucketSizeValue = "hourly";
         loadCsv('cleaned_logs.csv', bucketSizeValue)
             .then(bucketResults => {
-                timeSliderHandler(chartViewConfig, bucketResults.labels, bucketResults.values, bucketResults.dailyLabels, bucketResults.hourlyLabels, bucketResults.rows);
+                timeSliderHandler(chartViewConfig, bucketResults.dailyLabels, bucketResults.hourlyLabels, bucketResults.rows);
                 chartViewConfig.charts.forEach(element => {
                     element.chartFunction(element.chartId);
                 });

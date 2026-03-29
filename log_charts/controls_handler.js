@@ -1,4 +1,9 @@
-let allValues = [];
+/*
+  This module contains function to handle events from the slider and bucket size controls
+  in the HTML file. This also holds the loaded rows from the CSV file and provides information
+  and the slider positions and data back to the various charts.
+ */
+
 let currentStartIndex = 0;
 let currentEndIndex = 0;
 let startSlider;
@@ -51,14 +56,11 @@ export function getRows() {
   return sliderState["rows"];
 }
 
-export function timeSliderHandler(chartViewConfig, allLabelsArg, allValuesArg, dailyLabelsArg, hourlyLabelsArg, rowsArg) {
-  sliderState["allLabels"] = allLabelsArg;
-  sliderState["allValues"] = allValuesArg;
-  sliderState["dailyLabels"] = dailyLabelsArg;
-  sliderState["hourlyLabels"] = hourlyLabelsArg;
-  sliderState["rows"] = rowsArg;
+export function timeSliderHandler(chartViewConfig, dailyLabels, hourlyLabels, rows) {
+  sliderState["dailyLabels"] = dailyLabels;
+  sliderState["hourlyLabels"] = hourlyLabels;
+  sliderState["rows"] = rows;
   const allLabels = getTimeLabels();
-  allValues = allValuesArg;
   startSlider = document.getElementById(chartViewConfig.startSliderId);
   endSlider = document.getElementById(chartViewConfig.endSliderId);
   startLabel = document.getElementById(chartViewConfig.startLabelId);
