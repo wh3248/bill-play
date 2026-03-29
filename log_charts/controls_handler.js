@@ -14,7 +14,7 @@ let statusElement;
 
 let sliderState = {};
 let callBackList = [];
-let bucketSize = "daily";
+let timeBucket = "hourly";
 
 /*
  * Add a callback function from a chart to call a function in the chart
@@ -27,17 +27,17 @@ export function addTimeSliderCallBack(callBack) {
   }
 }
 
-export function getTimeBucketSize() {
-  if (bucketSize == "daily") {
+export function getTimeBucket() {
+  if (timeBucket == "daily") {
     return ["Day", "day_date", "Daily"];
-  } else if (bucketSize == "hourly") {
+  } else if (timeBucket == "hourly") {
     return ["Hour", "hour_date", "Hourly"];
   } else {
     return ["Second", "time", "Seconds"];
   }
 }
 export function getTimeLabels() {
-  if (bucketSize == "daily") {
+  if (timeBucket == "daily") {
     return sliderState["dailyLabels"];
   } else {
     return sliderState["hourlyLabels"];

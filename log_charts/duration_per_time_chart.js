@@ -2,7 +2,7 @@
   This module implements a chart to display number of duration per time period.
 */
 
-import { addTimeSliderCallBack, getSliderPosition, getRows, getTimeLabels, getTimeBucketSize } from './controls_handler.js';
+import { addTimeSliderCallBack, getSliderPosition, getRows, getTimeLabels, getTimeBucket } from './controls_handler.js';
 
 let chartId;
 
@@ -13,7 +13,7 @@ export function durationPerTimeChart(chartIdArg) {
 }
 
 function renderChart() {
-  const [units, bucket] = getTimeBucketSize();
+  const [units, bucket] = getTimeBucket();
   const timeLabels = getTimeLabels();
   const [currentStartIndex, currentEndIndex] = getSliderPosition();
 
@@ -23,13 +23,16 @@ function renderChart() {
   // Compute Y values for each timeLabel
   const rowValues = [];
   const rows = getRows();
-  const counts = new Map();
+  const max_duration = new Map();
   rows.forEach(row => {
-    const timeKey = row[bucket]
-    counts.set(timeKey, (counts.get(timeKey) || 0) + 1);
+    const timeKey = row[bucket];
+    const duration = parseFloat(row["duration"])
+    let maxValue = max_duration.get(timeKey) || 0.0;
+    maxValue = Math.max(maxValue, duration);
+    max_duration.set(timeKey, maxValue);
   });
   slicedTimeLabels.forEach(timeLabel => {
-    rowValues.push(counts.get(timeLabel) || 0);
+    rowValues.push(max_duration.get(timeLabel) || 0);
   });
 
   // Draw the chart in the chartId HTML element.
@@ -51,7 +54,7 @@ function renderChart() {
       automargin: true,
     },
     yaxis: {
-      title: 'Duration for Time Period',
+      title: `Max Duration(s) for ${units}`,
       rangemode: 'tozero',
     },
     margin: { t: 60, r: 24, l: 60, b: 120 },

@@ -21,13 +21,13 @@
         <div class="note" id="controls">
             <div style="display: grid; gap: 12px;">
                 <div>
-                    <strong>Bucket Size:</strong>
+                    <strong>Time Bucket:</strong>
                     <div style="display: flex; gap: 12px; margin-top: 6px;">
                         <label>
-                            <input type="radio" name="bucketSize" value="daily" checked /> Daily
+                            <input type="radio" name="timeBucket" value="daily" checked /> Daily
                         </label>
                         <label>
-                            <input type="radio" name="bucketSize" value="hourly" /> Hourly
+                            <input type="radio" name="timeBucket" value="hourly" /> Hourly
                         </label>
                     </div>
                 </div>
@@ -76,8 +76,7 @@
                 }
             ]
         };
-        let bucketSizeValue = "hourly";
-        loadCsv('cleaned_logs.csv', bucketSizeValue)
+        loadCsv('cleaned_logs.csv')
             .then(bucketResults => {
                 timeSliderHandler(chartViewConfig, bucketResults.dailyLabels, bucketResults.hourlyLabels, bucketResults.rows);
                 chartViewConfig.charts.forEach(element => {
