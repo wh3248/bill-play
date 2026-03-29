@@ -17,22 +17,9 @@
         <div id="controls-placeholder"></div>
     </main>
     <script type="module">
-        import { loadCsv } from './load_csv.js';
-        import { requestsPerTimeChart } from './requests_per_time_chart.js';
-        import { durationPerTimeChart } from './duration_per_time_chart.js';
         import { timeSliderHandler, loadControlsHtml } from './controls_handler.js';
         await loadControlsHtml("controls-placeholder", "controls.html.partial");
-        const charts = [
-                {
-                    chartId: "chart_1",
-                    chartFunction: requestsPerTimeChart,
-                },
-                {
-                    chartId: "chart_2",
-                    chartFunction: durationPerTimeChart,
-                }
-            ];
-        timeSliderHandler(charts);
+        timeSliderHandler();
     </script>
 </body>
 

@@ -19,10 +19,10 @@ let callBackList = [];
 
 export async function loadControlsHtml(placeHolderId, htmlFile) {
   await fetch(htmlFile)
-  .then(r=>r.text()) 
-  .then(html => {
-    document.getElementById(placeHolderId).innerHTML = html;
-  })
+    .then(r => r.text())
+    .then(html => {
+      document.getElementById(placeHolderId).innerHTML = html;
+    })
 }
 
 /*
@@ -68,21 +68,47 @@ export function getRows() {
   return csvData["rows"];
 }
 
-export function timeSliderHandler(charts) {
+export function timeSliderHandler() {
+  loadChartPage()
+  .then(chartPage => {
   loadCsv('cleaned_logs.csv')
     .then(data => {
-        intializeSliderHandler(charts, data);
-        charts.forEach(element => {
-            element.chartFunction(element.chartId);
-        });
+      console.log(chartPage);
+      intializeSliderHandler(chartPage.charts, data);
+      chartPage.charts.forEach(element => {
+        element.chartFunction(element.chartId);
+      });
     })
     .catch(error => {
-        console.error(error);
-        const status = document.getElementById('status');
-        status.textContent = error.message;
-        status.classList.add('error');
+      console.error(error);
+      const status = document.getElementById('status');
+      status.textContent = error.message;
+      status.classList.add('error');
     });
 
+  })
+}
+
+async function loadChartPage() {
+  const url = new URL(window.location.href);
+  const pageQueryParam = url.searchParams.get("page");
+  const pageName = pageQueryParam ? pageQueryParam : "default";
+  const chartPagesUrl = "chart_pages.json";
+  const response = await fetch(chartPagesUrl);
+  if (!response.ok) {
+    throw new Error(`Unable to chart definition file ${chartPagesUrl}: ${response.status} ${response.statusText}`);
+  }
+  const contents = await response.text();
+  const chartsJson = JSON.parse(contents);
+  const chartPage = chartsJson[pageName];
+  let i;
+  for (i = 0; i < chartPage.charts.length; i++) {
+    let chart = chartPage.charts[i];
+    const module = await import(`./${chart.chart_js_file}`);
+    const chartFunction = module[chart.chart_js_function];
+    chart["chartFunction"] = chartFunction;
+  }
+  return chartPage;
 }
 
 function intializeSliderHandler(chartViewConfig, data) {
