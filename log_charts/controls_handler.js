@@ -4,6 +4,8 @@
   and the slider positions and data back to the various charts.
  */
 
+import { loadCsv } from './load_csv.js';
+
 let currentStartIndex = 0;
 let currentEndIndex = 0;
 let startSlider;
@@ -14,6 +16,14 @@ let statusElement;
 
 let csvData = {};
 let callBackList = [];
+
+export async function loadControlsHtml(placeHolderId, htmlFile) {
+  await fetch(htmlFile)
+  .then(r=>r.text()) 
+  .then(html => {
+    document.getElementById(placeHolderId).innerHTML = html;
+  })
+}
 
 /*
  * Add a callback function from a chart to call a function in the chart
@@ -37,7 +47,8 @@ export function getTimeBucket() {
   }
 }
 export function getTimeLabels() {
-  const timeBucket = document.querySelector('input[name="timeBucket"]:checked').value;
+  const timeBucketElement = document.querySelector('input[name="timeBucket"]:checked');
+  const timeBucket = timeBucketElement ? timeBucketElement.value : "daily";
   if (timeBucket == "daily") {
     return csvData["dailyLabels"];
   } else {
@@ -57,14 +68,31 @@ export function getRows() {
   return csvData["rows"];
 }
 
-export function timeSliderHandler(chartViewConfig, data) {
+export function timeSliderHandler(charts) {
+  loadCsv('cleaned_logs.csv')
+    .then(data => {
+        intializeSliderHandler(charts, data);
+        charts.forEach(element => {
+            element.chartFunction(element.chartId);
+        });
+    })
+    .catch(error => {
+        console.error(error);
+        const status = document.getElementById('status');
+        status.textContent = error.message;
+        status.classList.add('error');
+    });
+
+}
+
+function intializeSliderHandler(chartViewConfig, data) {
   csvData = data;
   const allLabels = getTimeLabels();
-  startSlider = document.getElementById(chartViewConfig.startSliderId);
-  endSlider = document.getElementById(chartViewConfig.endSliderId);
-  startLabel = document.getElementById(chartViewConfig.startLabelId);
-  endLabel = document.getElementById(chartViewConfig.endLabelId);
-  statusElement = document.getElementById(chartViewConfig.statusId);
+  startSlider = document.getElementById("startSlider");
+  endSlider = document.getElementById("endSlider");
+  startLabel = document.getElementById("startLabel");
+  endLabel = document.getElementById("endLabel");
+  statusElement = document.getElementById("status");
 
   if (!startSlider || !endSlider || !startLabel || !endLabel) {
     throw new Error('Unable to initialize chart controls: one or more element IDs are invalid.');

@@ -14,48 +14,15 @@
 
 <body>
     <main>
-        <div class="chart-row">
-            <div id="chart_1" class="chart-item"></div>
-            <div id="chart_2" class="chart-item"></div>
-        </div>
-        <div class="note" id="controls">
-            <div style="display: grid; gap: 12px;">
-                <div>
-                    <strong>Time Bucket:</strong>
-                    <div style="display: flex; gap: 12px; margin-top: 6px;">
-                        <label>
-                            <input type="radio" name="timeBucket" value="daily" checked /> Daily
-                        </label>
-                        <label>
-                            <input type="radio" name="timeBucket" value="hourly" /> Hourly
-                        </label>
-                    </div>
-                </div>
-                <div>
-                    <label for="startSlider"><strong>Start hour:</strong> <span id="startLabel">—</span></label>
-                    <input type="range" id="startSlider" min="0" max="0" value="0"
-                        style="width: 100%; margin-top: 6px;" />
-                </div>
-                <div>
-                    <label for="endSlider"><strong>End hour:</strong> <span id="endLabel">—</span></label>
-                    <input type="range" id="endSlider" min="0" max="0" value="0"
-                        style="width: 100%; margin-top: 6px;" />
-                </div>
-            </div>
-        </div>
-        <div id="status">Loading data ...</div>
+        <div id="controls-placeholder"></div>
     </main>
     <script type="module">
         import { loadCsv } from './load_csv.js';
         import { requestsPerTimeChart } from './requests_per_time_chart.js';
         import { durationPerTimeChart } from './duration_per_time_chart.js';
-        import { timeSliderHandler } from './controls_handler.js';
-        const chartViewConfig = {
-            startSliderId: 'startSlider',
-            endSliderId: 'endSlider',
-            startLabelId: 'startLabel',
-            endLabelId: 'endLabel',
-            charts: [
+        import { timeSliderHandler, loadControlsHtml } from './controls_handler.js';
+        await loadControlsHtml("controls-placeholder", "controls.html.partial");
+        const charts = [
                 {
                     chartId: "chart_1",
                     chartFunction: requestsPerTimeChart,
@@ -64,21 +31,8 @@
                     chartId: "chart_2",
                     chartFunction: durationPerTimeChart,
                 }
-            ]
-        };
-        loadCsv('cleaned_logs.csv')
-            .then(data => {
-                timeSliderHandler(chartViewConfig, data);
-                chartViewConfig.charts.forEach(element => {
-                    element.chartFunction(element.chartId);
-                });
-            })
-            .catch(error => {
-                const status = document.getElementById('status');
-                status.textContent = error.message;
-                status.classList.add('error');
-                console.error(error);
-            });
+            ];
+        timeSliderHandler(charts);
     </script>
 </body>
 

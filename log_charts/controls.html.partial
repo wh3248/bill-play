@@ -1,0 +1,32 @@
+<div id="page-body"></div>
+    <div class="chart-row">
+        <div id="chart_1" class="chart-item"></div>
+        <div id="chart_2" class="chart-item"></div>
+    </div>
+    <div class="note" id="controls">
+        <div style="display: grid; gap: 12px;">
+            <div>
+                <strong>Time Bucket:</strong>
+                <div style="display: flex; gap: 12px; margin-top: 6px;">
+                    <label>
+                        <input type="radio" name="timeBucket" value="daily" checked /> Daily
+                    </label>
+                    <label>
+                        <input type="radio" name="timeBucket" value="hourly" /> Hourly
+                    </label>
+                </div>
+            </div>
+            <div>
+                <label for="startSlider"><strong>Start hour:</strong> <span id="startLabel">—</span></label>
+                <input type="range" id="startSlider" min="0" max="0" value="0"
+                    style="width: 100%; margin-top: 6px;" />
+            </div>
+            <div>
+                <label for="endSlider"><strong>End hour:</strong> <span id="endLabel">—</span></label>
+                <input type="range" id="endSlider" min="0" max="0" value="0"
+                    style="width: 100%; margin-top: 6px;" />
+            </div>
+        </div>
+    </div>
+    <div id="status">Loading data ...</div>
+</div>
