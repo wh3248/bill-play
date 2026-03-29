@@ -48,6 +48,7 @@
     <script type="module">
         import { loadCsv } from './load_csv.js';
         import { requestsPerTimeChart } from './requests_per_time_chart.js';
+        import { durationPerTimeChart } from './duration_per_time_chart.js';
         import { timeSliderHandler } from './controls_handler.js';
         const chartViewConfig = {
             startSliderId: 'startSlider',
@@ -58,6 +59,15 @@
                 {
                     chartId: "chart_1",
                     chartFunction: requestsPerTimeChart,
+                    statusId: 'status',
+                    startSliderId: 'startSlider',
+                    endSliderId: 'endSlider',
+                    startLabelId: 'startLabel',
+                    endLabelId: 'endLabel',
+                },
+                {
+                    chartId: "chart_2",
+                    chartFunction: durationPerTimeChart,
                     statusId: 'status',
                     startSliderId: 'startSlider',
                     endSliderId: 'endSlider',
