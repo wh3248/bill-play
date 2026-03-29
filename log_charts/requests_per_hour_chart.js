@@ -1,4 +1,4 @@
-import { addTimeSliderCallBack, getSliderState } from './controls_handler.js';
+import { addTimeSliderCallBack, getSliderPosition, getRows, getTimeLabels, getTimeBucketSize } from './controls_handler.js';
 
 let chartId;
 
@@ -9,14 +9,30 @@ export function requestsPerHourChart(chartIdArg) {
 }
 
 function renderChart() {
-  const [allLabels, allValues, currentStartIndex, currentEndIndex] = getSliderState();
-  const labels = allLabels.slice(currentStartIndex, currentEndIndex + 1);
-  const values = allValues.slice(currentStartIndex, currentEndIndex + 1);
+  const [units, bucket] = getTimeBucketSize();
+  const timeLabels = getTimeLabels();
+  const [currentStartIndex, currentEndIndex] = getSliderPosition();
 
+  // Slice the timelabel for the the slider start/end index
+  const slicedTimeLabels = timeLabels.slice(currentStartIndex, currentEndIndex + 1);
+
+  // Compute Y values for each timeLabel
+  const rowValues = [];
+  const rows = getRows();
+  const counts = new Map();
+  rows.forEach(row => {
+    const timeKey = row[bucket]
+    counts.set(timeKey, (counts.get(timeKey) || 0) + 1);
+  });
+  slicedTimeLabels.forEach(timeLabel => {
+    rowValues.push(counts.get(timeLabel) || 0);
+  });
+
+  // Draw the chart in the chartId HTML element.
   Plotly.react(chartId, [
     {
-      x: labels,
-      y: values,
+      x: slicedTimeLabels,
+      y: rowValues,
       type: 'scatter',
       mode: 'lines+markers',
       marker: { color: '#14213d', size: 6 },
@@ -24,9 +40,9 @@ function renderChart() {
       hovertemplate: '%{x}<br>Requests: %{y}<extra></extra>',
     },
   ], {
-    title: 'Requests per Hour',
+    title: `Requests per ${units}`,
     xaxis: {
-      title: 'Hour',
+      title: units,
       tickangle: -45,
       automargin: true,
     },

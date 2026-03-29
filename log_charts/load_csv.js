@@ -94,6 +94,43 @@ function createDailyBuckets(rows) {
   return { labels, values };
 }
 
+/* 
+  Add date bucket columns to rows list.
+  Parameters:
+    rows:   is a list of maps where each map has columns of the row.
+  Add two new entries to each row map for hour_date and day_date.
+  Returns:
+    An array [dailyLabels, hourlyLabels]
+  Where dailyLabels is a list unique daily labels
+  and hourlyLabels is a list of unique hourly labels.
+*/
+function createDateBucketColumns(rows) {
+  const dailyLabels = [];
+  const hourlyLabels = [];
+  rows.forEach(row => {
+    const timeValue = row.time || row['time'];
+    const date = parseCsvTime(timeValue);
+    if (!date) {
+      return;
+    }
+
+    date.setMinutes(0, 0, 0);
+    const hourKey = formatHourLabel(date);
+    row["hour_date"] = hourKey;
+    if (hourlyLabels.indexOf(hourKey) == -1) {
+      hourlyLabels.push(hourKey);
+    }
+
+    date.setHours(0, 0, 0, 0);
+    const dayKey = formatDayLabel(date);
+    row["day_date"] = dayKey;
+    if (dailyLabels.indexOf(dayKey) == -1) {
+      dailyLabels.push(dayKey);
+    }
+  });
+  return ([dailyLabels, hourlyLabels]);
+}
+
 export async function loadCsv(csvPath, dailyHourly) {
   const response = await fetch(csvPath);
   if (!response.ok) {
@@ -115,8 +152,12 @@ export async function loadCsv(csvPath, dailyHourly) {
     throw new Error('CSV parse returned no data.');
   }
 
+  const [dailyLabels, hourlyLabels] = createDateBucketColumns(result.data);
   const bucketed = dailyHourly == "daily" ? createDailyBuckets(result.data) : createHourlyBuckets(result.data);
   const bucketResults = {
+    rows: result.data,
+    dailyLabels: dailyLabels,
+    hourlyLabels: hourlyLabels,
     labels: bucketed.labels,
     values: bucketed.values,
     rowCount: result.data.length,
