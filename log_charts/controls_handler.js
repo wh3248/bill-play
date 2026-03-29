@@ -14,7 +14,7 @@ let statusElement;
 
 let sliderState = {};
 let callBackList = [];
-let bucketSize = "hourly";
+let bucketSize = "daily";
 
 /*
  * Add a callback function from a chart to call a function in the chart
@@ -29,7 +29,7 @@ export function addTimeSliderCallBack(callBack) {
 
 export function getTimeBucketSize() {
   if (bucketSize == "daily") {
-    return ["Day", "date_date", "Daily"];
+    return ["Day", "day_date", "Daily"];
   } else if (bucketSize == "hourly") {
     return ["Hour", "hour_date", "Hourly"];
   } else {

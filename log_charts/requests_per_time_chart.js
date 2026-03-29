@@ -13,7 +13,7 @@ export function requestsPerTimeChart(chartIdArg) {
 }
 
 function renderChart() {
-  const [units, bucket] = getTimeBucketSize();
+  const [units, time_column] = getTimeBucketSize();
   const timeLabels = getTimeLabels();
   const [currentStartIndex, currentEndIndex] = getSliderPosition();
 
@@ -25,7 +25,7 @@ function renderChart() {
   const rows = getRows();
   const counts = new Map();
   rows.forEach(row => {
-    const timeKey = row[bucket]
+    const timeKey = row[time_column]
     counts.set(timeKey, (counts.get(timeKey) || 0) + 1);
   });
   slicedTimeLabels.forEach(timeLabel => {
