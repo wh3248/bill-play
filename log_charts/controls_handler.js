@@ -49,6 +49,7 @@ export function getTimeBucket() {
 export function getTimeLabels() {
   const timeBucketElement = document.querySelector('input[name="timeBucket"]:checked');
   const timeBucket = timeBucketElement ? timeBucketElement.value : "daily";
+  if (!csvData) return [];
   if (timeBucket == "daily") {
     return csvData["dailyLabels"];
   } else {
@@ -73,8 +74,9 @@ export function timeSliderHandler() {
   .then(chartPage => {
   loadCsv('cleaned_logs.csv')
     .then(data => {
-      console.log(chartPage);
-      intializeSliderHandler(chartPage.charts, data);
+      csvData = data;
+      intializeSliderHandler();
+      updateSliderLabels();
       chartPage.charts.forEach(element => {
         element.chartFunction(element.chartId);
       });
@@ -104,15 +106,15 @@ async function loadChartPage() {
   let i;
   for (i = 0; i < chartPage.charts.length; i++) {
     let chart = chartPage.charts[i];
-    const module = await import(`./${chart.chart_js_file}`);
-    const chartFunction = module[chart.chart_js_function];
+    const module = await import(`./${chart.js_file}`);
+    const chartFunction = module[chart.js_function];
     chart["chartFunction"] = chartFunction;
+    chart["chartId"] = `chart_${i+1}`;
   }
   return chartPage;
 }
 
-function intializeSliderHandler(chartViewConfig, data) {
-  csvData = data;
+function intializeSliderHandler() {
   const allLabels = getTimeLabels();
   startSlider = document.getElementById("startSlider");
   endSlider = document.getElementById("endSlider");
@@ -134,7 +136,8 @@ function intializeSliderHandler(chartViewConfig, data) {
   endSlider.value = currentEndIndex;
   startSlider.addEventListener('input', () => updateTimeRange(true));
   endSlider.addEventListener('input', () => updateTimeRange(false));
-
+  document.getElementById("dailyTimeBucket").addEventListener('input', () => updateTimeRange(true));
+  document.getElementById("hourlyTimeBucket").addEventListener('input', () => updateTimeRange(true));
 }
 
 function updateTimeRange(isStartChanged) {
@@ -168,7 +171,12 @@ function updateTimeRange(isStartChanged) {
 }
 
 function updateSliderLabels() {
-  const allLabels = csvData["hourlyLabels"];
-  startLabel.textContent = allLabels[currentStartIndex] || '—';
-  endLabel.textContent = allLabels[currentEndIndex] || '—';
+  const [units] = getTimeBucket();
+  const allLabels = getTimeLabels();
+  if (allLabels && allLabels.length > 0 && startLabel && endLabel) {
+    startLabel.textContent = allLabels[currentStartIndex] || '—';
+    endLabel.textContent = allLabels[currentEndIndex] || '—';
+    document.getElementById("startTimeUnits").innerHTML = units;
+    document.getElementById("endTimeUnits").innerHTML = units;
+  }
 }

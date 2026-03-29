@@ -3,14 +3,12 @@
         "name": "Default",
         "charts": [
             {
-                "chartId": "chart_1",
-                "chart_js_file": "requests_per_time_chart.js",
-                "chart_js_function": "requestsPerTimeChart"
+                "js_file": "requests_per_time_chart.js",
+                "js_function": "requestsPerTimeChart"
             },
             {
-                "chartId": "chart_2",
-                "chart_js_file": "duration_per_time_chart.js",
-                "chart_js_function": "durationPerTimeChart"
+                "js_file": "duration_per_time_chart.js",
+                "js_function": "durationPerTimeChart"
             }
         ]
     }

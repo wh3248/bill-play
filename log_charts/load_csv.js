@@ -2,14 +2,12 @@
  * This file contains an exported function loadCsv to load the log information from server.
 */
 
-/* 
- * Fetch a csv log file from the server, parse it and return the rows.
- * Parameters:
- *  csvPath:  The URL path to the csv file.
- * Returns a map with keys: rows, dailyLabels, hourlyLabels.
- * The rows are all rows in the csv file with day_date and hour_date added.
- * The dailyLabels is a list of unique day labels.
- * The hourlyLabels is a list of unique hour labels.
+/**
+ * Fetch a CSV log file from the server, parse it, and return the parsed rows.
+ * @param {string} csvPath - The URL path to the CSV file.
+ * @returns {Promise<{rows: object[], dailyLabels: string[], hourlyLabels: string[]}>>} Promise resolving to CSV data.
+ *   The returned object includes rows with added day_date and hour_date columns,
+ *   plus unique dailyLabels and hourlyLabels.
  */
 export async function loadCsv(csvPath) {
   const response = await fetch(csvPath);
@@ -41,18 +39,12 @@ export async function loadCsv(csvPath) {
   return csvData;
 }
 
-/* 
-  Add two columns "day_date" and "hour_date" to each row.
-  Parameters:
-    rows:   is a list of rows, where each row is a map of column name to value from log file.
-  Returns:
-    An array [dailyLabels, hourlyLabels]
-  The new day_date column is the time column of the row formatted as day.
-  The new hour_date column is the time column of the row formatted as an hour.
-
-  The dailyLabels is a list unique day_date values.
-  The hourlyLabels is a list of unique hour_date values.
-*/
+/**
+ * Add two columns, "day_date" and "hour_date", to each row and collect labels.
+ * @param {Array<object>} rows - Parsed CSV rows with at least a time field.
+ * @returns {[string[], string[]]} A tuple containing [dailyLabels, hourlyLabels].
+ *   dailyLabels contains unique day_date values and hourlyLabels contains unique hour_date values.
+ */
 function createDayHourColumns(rows) {
   const dailyLabels = [];
   const hourlyLabels = [];
@@ -81,10 +73,20 @@ function createDayHourColumns(rows) {
 }
 
 
+/**
+ * Format a Date object as an hourly label string.
+ * @param {Date} date
+ * @returns {string}
+ */
 function formatHourLabel(date) {
   return date.toISOString().slice(0, 13).replace('T', ' ') + ':00';
 }
 
+/**
+ * Format a Date object as a day label string.
+ * @param {Date} date
+ * @returns {string}
+ */
 function formatDayLabel(date) {
   if (!(date instanceof Date) || isNaN(date)) {
     return '';
@@ -92,6 +94,11 @@ function formatDayLabel(date) {
   return date.toISOString().slice(0, 10);
 }
 
+/**
+ * Parse a CSV time value into a Date object.
+ * @param {string} value - The time string to parse.
+ * @returns {Date|null} The parsed Date or null if the value is invalid.
+ */
 function parseCsvTime(value) {
   if (!value) {
     return null;

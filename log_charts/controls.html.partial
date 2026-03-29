@@ -9,20 +9,20 @@
                 <strong>Time Bucket:</strong>
                 <div style="display: flex; gap: 12px; margin-top: 6px;">
                     <label>
-                        <input type="radio" name="timeBucket" value="daily" checked /> Daily
+                        <input id='dailyTimeBucket' type="radio" name="timeBucket" value="daily" checked /> Daily
                     </label>
                     <label>
-                        <input type="radio" name="timeBucket" value="hourly" /> Hourly
+                        <input id='hourlyTimeBucket' type="radio" name="timeBucket" value="hourly" /> Hourly
                     </label>
                 </div>
             </div>
             <div>
-                <label for="startSlider"><strong>Start hour:</strong> <span id="startLabel">—</span></label>
+                <label for="startSlider"><strong>Start <span id="startTimeUnits"/></span>:</strong> <span id="startLabel">—</span></label>
                 <input type="range" id="startSlider" min="0" max="0" value="0"
                     style="width: 100%; margin-top: 6px;" />
             </div>
             <div>
-                <label for="endSlider"><strong>End hour:</strong> <span id="endLabel">—</span></label>
+                <label for="endSlider"><strong>End <span id="endTimeUnits"/></span>:</strong> <span id="endLabel">—</span></label>
                 <input type="range" id="endSlider" min="0" max="0" value="0"
                     style="width: 100%; margin-top: 6px;" />
             </div>
