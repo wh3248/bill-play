@@ -28,6 +28,7 @@ export function addTimeSliderCallBack(callBack) {
 }
 
 export function getTimeBucket() {
+  const timeBucket = document.querySelector('input[name="timeBucket"]:checked').value;
   if (timeBucket == "daily") {
     return ["Day", "day_date", "Daily"];
   } else if (timeBucket == "hourly") {
@@ -37,6 +38,7 @@ export function getTimeBucket() {
   }
 }
 export function getTimeLabels() {
+  const timeBucket = document.querySelector('input[name="timeBucket"]:checked').value;
   if (timeBucket == "daily") {
     return sliderState["dailyLabels"];
   } else {
