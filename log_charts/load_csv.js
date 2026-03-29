@@ -33,12 +33,12 @@ export async function loadCsv(csvPath) {
   }
 
   const [dailyLabels, hourlyLabels] = createDayHourColumns(result.data);
-  const bucketResults = {
+  const csvData = {
     rows: result.data,
     dailyLabels: dailyLabels,
     hourlyLabels: hourlyLabels,
   };
-  return bucketResults;
+  return csvData;
 }
 
 /* 

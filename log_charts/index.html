@@ -59,26 +59,16 @@
                 {
                     chartId: "chart_1",
                     chartFunction: requestsPerTimeChart,
-                    statusId: 'status',
-                    startSliderId: 'startSlider',
-                    endSliderId: 'endSlider',
-                    startLabelId: 'startLabel',
-                    endLabelId: 'endLabel',
                 },
                 {
                     chartId: "chart_2",
                     chartFunction: durationPerTimeChart,
-                    statusId: 'status',
-                    startSliderId: 'startSlider',
-                    endSliderId: 'endSlider',
-                    startLabelId: 'startLabel',
-                    endLabelId: 'endLabel',
                 }
             ]
         };
         loadCsv('cleaned_logs.csv')
-            .then(bucketResults => {
-                timeSliderHandler(chartViewConfig, bucketResults.dailyLabels, bucketResults.hourlyLabels, bucketResults.rows);
+            .then(data => {
+                timeSliderHandler(chartViewConfig, data);
                 chartViewConfig.charts.forEach(element => {
                     element.chartFunction(element.chartId);
                 });

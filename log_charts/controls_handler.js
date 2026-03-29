@@ -12,9 +12,8 @@ let startLabel;
 let endLabel;
 let statusElement;
 
-let sliderState = {};
+let csvData = {};
 let callBackList = [];
-let timeBucket = "hourly";
 
 /*
  * Add a callback function from a chart to call a function in the chart
@@ -40,9 +39,9 @@ export function getTimeBucket() {
 export function getTimeLabels() {
   const timeBucket = document.querySelector('input[name="timeBucket"]:checked').value;
   if (timeBucket == "daily") {
-    return sliderState["dailyLabels"];
+    return csvData["dailyLabels"];
   } else {
-    return sliderState["hourlyLabels"];
+    return csvData["hourlyLabels"];
   }
 }
 
@@ -55,13 +54,11 @@ export function getSliderPosition() {
  *   A list [allLabels, allValues, currentStartIndex, currentEndIndex]
  */
 export function getRows() {
-  return sliderState["rows"];
+  return csvData["rows"];
 }
 
-export function timeSliderHandler(chartViewConfig, dailyLabels, hourlyLabels, rows) {
-  sliderState["dailyLabels"] = dailyLabels;
-  sliderState["hourlyLabels"] = hourlyLabels;
-  sliderState["rows"] = rows;
+export function timeSliderHandler(chartViewConfig, data) {
+  csvData = data;
   const allLabels = getTimeLabels();
   startSlider = document.getElementById(chartViewConfig.startSliderId);
   endSlider = document.getElementById(chartViewConfig.endSliderId);
@@ -117,7 +114,7 @@ function updateTimeRange(isStartChanged) {
 }
 
 function updateSliderLabels() {
-  const allLabels = sliderState["hourlyLabels"];
+  const allLabels = csvData["hourlyLabels"];
   startLabel.textContent = allLabels[currentStartIndex] || '—';
   endLabel.textContent = allLabels[currentEndIndex] || '—';
 }
