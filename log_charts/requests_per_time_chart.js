@@ -21,24 +21,31 @@ function renderChart() {
   const slicedTimeLabels = timeLabels.slice(currentStartIndex, currentEndIndex + 1);
 
   // Get counts for each time bucket into a map
-  const counts = new Map();
-  const rowValues = [];
+  const allCountsMap = new Map();
+  const rseCountsMap = new Map();
+  const allCountValues = [];
+  const rseCountValues = [];
   const rows = getRows();
   rows.forEach(row => {
     const timeKey = row[time_column]
-    counts.set(timeKey, (counts.get(timeKey) || 0) + 1);
+    const user_id = row["user_id"];
+    allCountsMap.set(timeKey, (allCountsMap.get(timeKey) || 0) + 1);
+    if (["hf.test.public", "hf.test.private", "wh3248", "ad9465", "luet.princeton", "georgios.artavanis"].includes(user_id)) {
+      rseCountsMap.set(timeKey, (rseCountsMap.get(timeKey) || 0) + 1);
+    }
   });
 
   // Compute Y values for each timeLabel
   slicedTimeLabels.forEach(timeLabel => {
-    rowValues.push(counts.get(timeLabel) || 0);
+    allCountValues.push(allCountsMap.get(timeLabel) || 0);
+    rseCountValues.push(rseCountsMap.get(timeLabel) || 0);
   });
 
   // Draw the chart in the chartId HTML element.
   Plotly.react(chartId, [
     {
       x: slicedTimeLabels,
-      y: rowValues,
+      y: allCountValues,
       type: 'scatter',
       mode: 'lines+markers',
       marker: { color: '#14213d', size: 6 },
