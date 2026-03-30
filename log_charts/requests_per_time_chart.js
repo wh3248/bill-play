@@ -54,7 +54,7 @@ function renderChart() {
       title: 'Request Count',
       rangemode: 'tozero',
     },
-    margin: { t: 60, r: 24, l: 60, b: 120 },
+    margin: { t: 35, r: 24, l: 60, b: 5 },
     paper_bgcolor: '#f2f4f8',
     plot_bgcolor: '#ffffff',
   }, { responsive: true });

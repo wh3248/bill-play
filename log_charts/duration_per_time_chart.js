@@ -47,7 +47,7 @@ function renderChart() {
       hovertemplate: '%{x}<br>Requests: %{y}<extra></extra>',
     },
   ], {
-    title: `Duration per ${units}`,
+    title: `Max Duration per ${units}`,
     xaxis: {
       title: units,
       tickangle: -45,
@@ -57,7 +57,7 @@ function renderChart() {
       title: `Max Duration(s) for ${units}`,
       rangemode: 'tozero',
     },
-    margin: { t: 60, r: 24, l: 60, b: 120 },
+    margin: { t: 35, r: 24, l: 60, b: 5 },
     paper_bgcolor: '#f2f4f8',
     plot_bgcolor: '#ffffff',
   }, { responsive: true });
