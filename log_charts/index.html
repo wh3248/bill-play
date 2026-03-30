@@ -17,9 +17,9 @@
         <div id="controls-placeholder"></div>
     </main>
     <script type="module">
-        import { timeSliderHandler, loadControlsHtml } from './controls_handler.js';
+        import { initializeControlsHandler, loadControlsHtml } from './controls_handler.js';
         await loadControlsHtml("controls-placeholder", "controls.partial.html");
-        timeSliderHandler();
+        initializeControlsHandler();
     </script>
 </body>
 

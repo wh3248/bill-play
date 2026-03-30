@@ -2,7 +2,7 @@
   This module implements a chart to display number of duration per time period.
 */
 
-import { addTimeSliderCallBack, getSliderPosition, getRows, getTimeLabels, getTimeBucket } from './controls_handler.js';
+import { addTimeSliderCallBack, getSliderPosition, getRows, getTimeLabels, getTimeUnits } from './controls_handler.js';
 
 let chartId;
 
@@ -13,7 +13,7 @@ export function durationPerTimeChart(chartIdArg) {
 }
 
 function renderChart() {
-  const [units, bucket] = getTimeBucket();
+  const [units, bucket] = getTimeUnits();
   const timeLabels = getTimeLabels();
   const [currentStartIndex, currentEndIndex] = getSliderPosition();
 

@@ -2,7 +2,7 @@
   This module implements a chart to display number of requests per time period.
 */
 
-import { addTimeSliderCallBack, getSliderPosition, getRows, getTimeLabels, getTimeBucket } from './controls_handler.js';
+import { addTimeSliderCallBack, getSliderPosition, getRows, getTimeLabels, getTimeUnits } from './controls_handler.js';
 
 let chartId;
 
@@ -13,7 +13,7 @@ export function requestsPerTimeChart(chartIdArg) {
 }
 
 function renderChart() {
-  const [units, time_column] = getTimeBucket();
+  const [units, time_column] = getTimeUnits();
   const timeLabels = getTimeLabels();
   const [currentStartIndex, currentEndIndex] = getSliderPosition();
 

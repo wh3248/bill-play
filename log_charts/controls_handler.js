@@ -36,7 +36,7 @@ export function addTimeSliderCallBack(callBack) {
   }
 }
 
-export function getTimeBucket() {
+export function getTimeUnits() {
   const timeBucket = document.querySelector('input[name="timeBucket"]:checked').value;
   if (timeBucket == "daily") {
     return ["Day", "day_date", "Daily"];
@@ -69,7 +69,7 @@ export function getRows() {
   return csvData["rows"];
 }
 
-export function timeSliderHandler() {
+export function initializeControlsHandler() {
   loadChartPage()
   .then(chartPage => {
   loadCsv('cleaned_logs.csv')
@@ -77,6 +77,7 @@ export function timeSliderHandler() {
       csvData = data;
       intializeSliderHandler();
       updateSliderLabels();
+      updateTimeRange();
       chartPage.charts.forEach(element => {
         element.chartFunction(element.chartId);
       });
@@ -164,14 +165,15 @@ function updateTimeRange(isStartChanged) {
     callBack();
   });
   const allLabels = getTimeLabels();
+  const [units] = getTimeUnits();
   if (statusElement) {
     statusElement.textContent =
-      `Displaying ${currentEndIndex - currentStartIndex + 1} hours from ${allLabels[currentStartIndex]} to ${allLabels[currentEndIndex]}.`;
+      `Displaying ${currentEndIndex - currentStartIndex + 1} ${units}s from ${allLabels[currentStartIndex]} to ${allLabels[currentEndIndex]}.`;
   }
 }
 
 function updateSliderLabels() {
-  const [units] = getTimeBucket();
+  const [units] = getTimeUnits();
   const allLabels = getTimeLabels();
   if (allLabels && allLabels.length > 0 && startLabel && endLabel) {
     startLabel.textContent = allLabels[currentStartIndex] || '—';
