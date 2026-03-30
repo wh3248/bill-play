@@ -1,32 +1,32 @@
 <div id="page-body"></div>
-    <div class="chart-row">
-        <div id="chart_1" class="chart-item"></div>
-        <div id="chart_2" class="chart-item"></div>
-    </div>
-    <div class="note" id="controls">
-        <div style="display: flex; gap: 12px; align-items: flex-start; justify-content: space-between;">
-            <div style="flex: 0 1 120px; min-width: 120px;">
-                <strong>Time Bucket:</strong>
-                <div style="display: flex; gap: 12px; margin-top: 6px;">
-                    <label>
-                        <input id='dailyTimeBucket' type="radio" name="timeBucket" value="daily" checked /> Daily
-                    </label>
-                    <label>
-                        <input id='hourlyTimeBucket' type="radio" name="timeBucket" value="hourly" /> Hourly
-                    </label>
-                </div>
-            </div>
-            <div style="flex: 1.5 1 0; min-width: 220px;">
-                <label for="startSlider"><strong>Start <span id="startTimeUnits"/></span>:</strong> <span id="startLabel">—</span></label>
-                <input type="range" id="startSlider" min="0" max="0" value="0"
-                    style="width: 100%; margin-top: 6px;" />
-            </div>
-            <div style="flex: 1.5 1 0; min-width: 220px;">
-                <label for="endSlider"><strong>End <span id="endTimeUnits"/></span>:</strong> <span id="endLabel">—</span></label>
-                <input type="range" id="endSlider" min="0" max="0" value="0"
-                    style="width: 100%; margin-top: 6px;" />
+<div class="chart-row">
+    <div id="chart_1" class="chart-item"></div>
+    <div id="chart_2" class="chart-item"></div>
+</div>
+<div class="note" id="controls">
+    <div style="display: flex; gap: 12px; align-items: flex-start; justify-content: space-between;">
+        <div style="flex: 0 1 120px; min-width: 120px;">
+            <strong>Time Bucket:</strong>
+            <div style="display: flex; gap: 12px; margin-top: 6px;">
+                <label>
+                    <input id='dailyTimeBucket' type="radio" name="timeBucket" value="daily" checked /> Daily
+                </label>
+                <label>
+                    <input id='hourlyTimeBucket' type="radio" name="timeBucket" value="hourly" /> Hourly
+                </label>
             </div>
         </div>
+        <div style="flex: 1.5 1 0; min-width: 220px;">
+            <label for="startSlider"><strong>Start <span id="startTimeUnits" /></span>:</strong> <span
+                    id="startLabel">—</span></label>
+            <input type="range" id="startSlider" min="0" max="0" value="0" style="width: 100%; margin-top: 6px;" />
+        </div>
+        <div style="flex: 1.5 1 0; min-width: 220px;">
+            <label for="endSlider"><strong>End <span id="endTimeUnits" /></span>:</strong> <span
+                    id="endLabel">—</span></label>
+            <input type="range" id="endSlider" min="0" max="0" value="0" style="width: 100%; margin-top: 6px;" />
+        </div>
     </div>
-    <div id="status">Loading data ...</div>
+</div>
+<div id="status">Loading data ...</div>
 </div>
