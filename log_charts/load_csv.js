@@ -12,7 +12,7 @@
 export async function loadCsv(csvPath) {
   const response = await fetch(csvPath);
   if (!response.ok) {
-    throw new Error(`Unable to load CSV file: ${response.status} ${response.statusText}`);
+    throw new Error(`Unable to load CSV log file '${csvPath}': ${response.status} ${response.statusText}`);
   }
 
   const text = await response.text();
@@ -30,24 +30,26 @@ export async function loadCsv(csvPath) {
     throw new Error('CSV parse returned no data.');
   }
 
-  const [dailyLabels, hourlyLabels] = createDayHourColumns(result.data);
+  const [monthlyLabels, dailyLabels, hourlyLabels] = createMonthDayHourColumns(result.data);
   const csvData = {
     rows: result.data,
     dailyLabels: dailyLabels,
     hourlyLabels: hourlyLabels,
+    monthlyLabels : monthlyLabels
   };
   return csvData;
 }
 
 /**
- * Add two columns, "day_date" and "hour_date", to each row and collect labels.
+ * Add three columns, "month_date", "day_date" and "hour_date", to each row and collect labels.
  * @param {Array<object>} rows - Parsed CSV rows with at least a time field.
- * @returns {[string[], string[]]} A tuple containing [dailyLabels, hourlyLabels].
+ * @returns {[string[], string[], string[]]} A tuple containing [monthlyLabels, dailyLabels, hourlyLabels].
  *   dailyLabels contains unique day_date values and hourlyLabels contains unique hour_date values.
  */
-function createDayHourColumns(rows) {
+function createMonthDayHourColumns(rows) {
   const dailyLabels = [];
   const hourlyLabels = [];
+  const monthlyLabels = [];
   rows.forEach(row => {
     const timeValue = row.time || row['time'];
     const date = parseCsvTime(timeValue);
@@ -68,8 +70,14 @@ function createDayHourColumns(rows) {
     if (dailyLabels.indexOf(dayKey) == -1) {
       dailyLabels.push(dayKey);
     }
+
+    const monthKey = formatMonthLabel(date);
+    row["month_date"] = monthKey;
+    if (monthlyLabels.indexOf(monthKey) == -1) {
+      monthlyLabels.push(monthKey);
+    }
   });
-  return ([dailyLabels, hourlyLabels]);
+  return ([monthlyLabels, dailyLabels, hourlyLabels]);
 }
 
 
@@ -92,6 +100,18 @@ function formatDayLabel(date) {
     return '';
   }
   return date.toISOString().slice(0, 10);
+}
+
+/**
+ * Format a Date object as a month label string.
+ * @param {Date} date
+ * @returns {string}
+ */
+function formatMonthLabel(date) {
+  if (!(date instanceof Date) || isNaN(date)) {
+    return '';
+  }
+  return date.toISOString().slice(0, 7);
 }
 
 /**

@@ -1,6 +1,7 @@
 {
     "default": {
         "name": "Default",
+        "log_file": "cleaned_api_logs.csv",
         "charts": [
             {
                 "js_file": "requests_per_time_chart.js",

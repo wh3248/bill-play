@@ -20,10 +20,10 @@ function renderChart() {
   // Slice the timelabel for the the slider start/end index
   const slicedTimeLabels = timeLabels.slice(currentStartIndex, currentEndIndex + 1);
 
-  // Compute Y values for each timeLabel
+  // Get max duration per time bucket into a map
+  const max_duration = new Map();
   const rowValues = [];
   const rows = getRows();
-  const max_duration = new Map();
   rows.forEach(row => {
     const timeKey = row[bucket];
     const duration = parseFloat(row["duration"])
@@ -31,6 +31,8 @@ function renderChart() {
     maxValue = Math.max(maxValue, duration);
     max_duration.set(timeKey, maxValue);
   });
+
+  // Compute Y values for each timeLabel
   slicedTimeLabels.forEach(timeLabel => {
     rowValues.push(max_duration.get(timeLabel) || 0);
   });

@@ -24,7 +24,7 @@ let callBackList = [];
 export function initializeControlsHandler() {
   loadChartPage()
     .then(chartPage => {
-      loadCsv('cleaned_logs.csv')
+      loadCsv(chartPage.log_file)
         .then(data => {
           csvData = data;
           intializeSliderHandler();
@@ -79,6 +79,8 @@ export function getTimeUnits() {
     return ["Day", "day_date", "Daily"];
   } else if (timeBucket == "hourly") {
     return ["Hour", "hour_date", "Hourly"];
+  } else if (timeBucket == "monthly") {
+    return ["Month", "month_date", "Monthly"];
   } else {
     return ["Second", "time", "Seconds"];
   }
@@ -94,8 +96,12 @@ export function getTimeLabels() {
   if (!csvData) return [];
   if (timeBucket == "daily") {
     return csvData["dailyLabels"];
-  } else {
+  } else if (timeBucket == "hourly") {
     return csvData["hourlyLabels"];
+  } else if (timeBucket == "monthly") {
+    return csvData["monthlyLabels"];
+  } else {
+    return [];
   }
 }
 
@@ -170,6 +176,7 @@ function intializeSliderHandler() {
   endSlider.addEventListener('input', () => updateTimeRange(false));
   document.getElementById("dailyTimeBucket").addEventListener('input', () => updateTimeBucket());
   document.getElementById("hourlyTimeBucket").addEventListener('input', () => updateTimeBucket());
+  document.getElementById("monthlyTimeBucket").addEventListener('input', () => updateTimeBucket());
 }
 
 /**

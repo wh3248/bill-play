@@ -20,14 +20,16 @@ function renderChart() {
   // Slice the timelabel for the the slider start/end index
   const slicedTimeLabels = timeLabels.slice(currentStartIndex, currentEndIndex + 1);
 
-  // Compute Y values for each timeLabel
+  // Get counts for each time bucket into a map
+  const counts = new Map();
   const rowValues = [];
   const rows = getRows();
-  const counts = new Map();
   rows.forEach(row => {
     const timeKey = row[time_column]
     counts.set(timeKey, (counts.get(timeKey) || 0) + 1);
   });
+
+  // Compute Y values for each timeLabel
   slicedTimeLabels.forEach(timeLabel => {
     rowValues.push(counts.get(timeLabel) || 0);
   });
