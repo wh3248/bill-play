@@ -68,7 +68,7 @@ function renderChart() {
       hovertemplate: '%{x}<br>Testing requests: %{y}<extra></extra>',
     },
   ], {
-    title: `Max Duration per ${units}`,
+    title: `Longest Query per ${units} with Team Testing Requests`,
     xaxis: {
       title: units,
       tickangle: -45,
