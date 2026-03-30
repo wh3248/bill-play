@@ -168,8 +168,8 @@ function intializeSliderHandler() {
   endSlider.value = currentEndIndex;
   startSlider.addEventListener('input', () => updateTimeRange(true));
   endSlider.addEventListener('input', () => updateTimeRange(false));
-  document.getElementById("dailyTimeBucket").addEventListener('input', () => updateTimeRange(true));
-  document.getElementById("hourlyTimeBucket").addEventListener('input', () => updateTimeRange(true));
+  document.getElementById("dailyTimeBucket").addEventListener('input', () => updateTimeBucket());
+  document.getElementById("hourlyTimeBucket").addEventListener('input', () => updateTimeBucket());
 }
 
 /**
@@ -205,6 +205,19 @@ function updateTimeRange(isStartChanged) {
     statusElement.textContent =
       `Displaying ${currentEndIndex - currentStartIndex + 1} ${units}s from ${allLabels[currentStartIndex]} to ${allLabels[currentEndIndex]}.`;
   }
+}
+
+function updateTimeBucket() {
+  const allLabels = getTimeLabels();
+  currentStartIndex = 0;
+  currentEndIndex = allLabels.length - 1;
+  startSlider.value = 0;
+  endSlider.max = allLabels.length - 1;
+  endSlider.value = allLabels.length - 1;
+  startSlider.max = allLabels.length - 1;
+  updateTimeRange(false);
+  updateTimeRange(true);
+  updateSliderLabels();
 }
 
 /**
