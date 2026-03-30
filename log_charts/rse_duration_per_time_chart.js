@@ -21,32 +21,51 @@ function renderChart() {
   const slicedTimeLabels = timeLabels.slice(currentStartIndex, currentEndIndex + 1);
 
   // Get max duration per time bucket into a map
-  const max_duration = new Map();
-  const rowValues = [];
+  const allValuesMaxDurationMap = new Map();
+  const rseValuesMaxDurationMap = new Map();
+  const allValues = [];
+  const rseValues = [];
   const rows = getRows();
   rows.forEach(row => {
     const timeKey = row[bucket];
     const duration = parseFloat(row["duration"])
-    let maxValue = max_duration.get(timeKey) || 0.0;
+    let maxValue = allValuesMaxDurationMap.get(timeKey) || 0.0;
     maxValue = Math.max(maxValue, duration);
-    max_duration.set(timeKey, maxValue);
+    allValuesMaxDurationMap.set(timeKey, maxValue);
+    const user_id = row["user_id"];
+    if (["hf.test.public", "hf.test.private", "wh3248", "ad9465", "luet.princeton", "georgios.artavanis"].includes(user_id)) {
+      rseValuesMaxDurationMap.set(timeKey, maxValue);
+    }
+
   });
 
   // Compute Y values for each timeLabel
   slicedTimeLabels.forEach(timeLabel => {
-    rowValues.push(max_duration.get(timeLabel) || 0);
+    allValues.push(allValuesMaxDurationMap.get(timeLabel) || 0);
+    rseValues.push(rseValuesMaxDurationMap.get(timeLabel) || 0);
   });
 
   // Draw the chart in the chartId HTML element.
   Plotly.react(chartId, [
     {
       x: slicedTimeLabels,
-      y: rowValues,
+      y: allValues,
+      name: 'All users',
       type: 'scatter',
       mode: 'lines+markers',
       marker: { color: '#fca311', size: 6 },
       line: { shape: 'linear', color: '#fca311', width: 3 },
       hovertemplate: '%{x}<br>Requests: %{y}<extra></extra>',
+    },
+    {
+      x: slicedTimeLabels,
+      y: rseValues,
+      name: 'Team testing requests',
+      type: 'scatter',
+      mode: 'lines+markers',
+      marker: { symbol: 'x', color: '#2f4b7c', size: 8 },
+      line: { shape: 'linear', color: '#2f4b7c', width: 3, dash: 'dash' },
+      hovertemplate: '%{x}<br>Testing requests: %{y}<extra></extra>',
     },
   ], {
     title: `Max Duration per ${units}`,
@@ -59,9 +78,20 @@ function renderChart() {
       title: `Max Duration(s) for ${units}`,
       rangemode: 'tozero',
     },
-    margin: { t: 35, r: 24, l: 60, b: 5 },
+    legend: {
+      orientation: 'h',
+      x: 0,
+      y: .96,
+      xanchor: 'left',
+      yanchor: 'bottom',
+      bgcolor: 'rgba(255,255,255,0.8)',
+      bordercolor: '#ccc',
+      borderwidth: 1,
+    },
+    margin: { t: 50, r: 24, l: 60, b: 5 },
     paper_bgcolor: '#f2f4f8',
     plot_bgcolor: '#ffffff',
+
   }, { responsive: true });
 }
 

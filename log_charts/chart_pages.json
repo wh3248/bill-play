@@ -10,7 +10,15 @@
             {
                 "js_file": "duration_per_time_chart.js",
                 "js_function": "durationPerTimeChart"
-            }
+            },
+            {
+                "js_file": "rse_requests_per_time_chart.js",
+                "js_function": "requestsPerTimeChart"
+            },
+            {
+                "js_file": "rse_duration_per_time_chart.js",
+                "js_function": "durationPerTimeChart"
+            }            
         ]
     }
 }

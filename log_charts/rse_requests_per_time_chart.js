@@ -35,7 +35,7 @@ function renderChart() {
     }
   });
 
-  // Compute Y values for each timeLabel
+  // Compute Y vaues for each timeLabel
   slicedTimeLabels.forEach(timeLabel => {
     allCountValues.push(allCountsMap.get(timeLabel) || 0);
     rseCountValues.push(rseCountsMap.get(timeLabel) || 0);
@@ -46,11 +46,22 @@ function renderChart() {
     {
       x: slicedTimeLabels,
       y: allCountValues,
+      name: 'All requests',
       type: 'scatter',
       mode: 'lines+markers',
       marker: { color: '#fca311', size: 6 },
       line: { shape: 'linear', color: '#fca311', width: 3 },
       hovertemplate: '%{x}<br>Requests: %{y}<extra></extra>',
+    },
+    {
+      x: slicedTimeLabels,
+      y: rseCountValues,
+      name: 'Team testing requests',
+      type: 'scatter',
+      mode: 'lines+markers',
+      marker: { symbol: 'x', color: '#2f4b7c', size: 8 },
+      line: { shape: 'linear', color: '#2f4b7c', width: 3, dash: 'dash' },
+      hovertemplate: '%{x}<br>Testing requests: %{y}<extra></extra>',
     },
   ], {
     title: `Requests per ${units}`,
@@ -63,7 +74,17 @@ function renderChart() {
       title: 'Request Count',
       rangemode: 'tozero',
     },
-    margin: { t: 35, r: 24, l: 60, b: 5 },
+    legend: {
+      orientation: 'h',
+      x: 0,
+      y: .96,
+      xanchor: 'left',
+      yanchor: 'bottom',
+      bgcolor: 'rgba(255,255,255,0.8)',
+      bordercolor: '#ccc',
+      borderwidth: 1,
+    },
+    margin: { t: 50, r: 24, l: 60, b: 5 },
     paper_bgcolor: '#f2f4f8',
     plot_bgcolor: '#ffffff',
   }, { responsive: true });
