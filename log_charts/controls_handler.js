@@ -26,10 +26,11 @@ export function initializeControlsHandler() {
     .then(selectedPage => {
       const chartPage = selectedPage.chartPage;
       const definedPages = selectedPage.definedPages;
+      const definitionId = selectedPage.id;
       loadCsv(chartPage.log_file)
         .then(data => {
           csvData = data;
-          initializeHeading(chartPage, definedPages);
+          initializeHeading(definitionId, chartPage, definedPages);
           intializeSliderHandler();
           updateSliderLabels();
           updateTimeRange();
@@ -129,10 +130,9 @@ export function getRows() {
  * Load the charts definition configuration from chart_pages.json.
  * @returns {Promise<Object>} containing a json object.
  * The returned json object has keys.
- * "chartPage" with the definition of the entry specified in the url
- * query parameters or requests the first entry if not specified.
- * "otherPages" a list of other pages in the form [{"name":"", "title":""}].
- * The other pages is used to populated the select pull to select other pages.
+ *   id: The id of the entry in the definition file of selected entry.
+ *   chartPage: The definition of the selected entry from the definition file.
+ *   definedPages: A list of all the pages as {"name":"", "title":""}.
  */
 async function loadChartDefinitions() {
   const chartDefinitionUrl = "chart_pages.json";
@@ -169,6 +169,7 @@ async function loadChartDefinitions() {
   }
   console.log(definedPages);
   const result = {
+    id: pageName,
     chartPage: chartPage,
     definedPages: definedPages
   }
@@ -271,10 +272,43 @@ function updateSliderLabels() {
 }
 
 /**
- * Initialize the heading using the title from the chartPage.
- * @param {json} chartPage the selected chart page from chart_pages.json.
+ * Initialize the page heading using the title from the chartPage.
+ * @param {string} definitionId - is the key of selected page from definition file.
+ * @param {object} chartPage - the selected chart page from chart_pages.json.
+ * @param {object[]} definedPages - list of availble charts as {id:,title:}.
+ * Set the title in the heading using the title from the chartPage.
+ * Populate the options for new charts using definedPages.
  */
-function initializeHeading(chartPage, definedPages) {
+function initializeHeading(definitionId, chartPage, definedPages) {
+  // Set the chart page title in the heading
   const chartTitle = chartPage.title;
   document.getElementById("chart_title").innerHTML = chartTitle;
+
+  // Add the option values for the select_chart drop down using definedPages.
+  let i;
+  const selectElement = document.getElementById("select_chart");
+  for (i = 0; i < definedPages.length; i++) {
+    var entry = definedPages[i];
+    var element = document.createElement("option")
+    element.textContent = entry["title"];
+    element.value = entry["id"];
+    if (entry["id"] == definitionId) {
+      element.selected = true;
+    }
+    selectElement.appendChild(element);
+  }
+
+  // Create an event handle to respond to changes to the drop down.
+  selectElement.addEventListener("change", changeSelectedChart);
+}
+
+/**
+ * Respond to a change event for the select_chart select tag.
+ * @param {object} event - event passed to the handler.
+ * Change the browser current window to use the ?page= for new chart.
+ */
+function changeSelectedChart(event) {
+  const selectedValue = event.target.value;
+  const url = `.?page=${selectedValue}`;
+  window.location = url;
 }
