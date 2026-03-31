@@ -125,29 +125,28 @@ export function getRows() {
   return csvData["rows"];
 }
 
-
 /**
- * Load the charts definition configuration from chart_pages.json.
- * @returns {Promise<Object>} containing a json object.
- * The returned json object has keys.
+ * Load the charts definition configuration from chart_pages.yaml.
+ * @returns {Promise<Object>} containing a yaml object.
+ * The returned yaml object has keys.
  *   id: The id of the entry in the definition file of selected entry.
  *   chartPage: The definition of the selected entry from the definition file.
  *   definedPages: A list of all the pages as {"name":"", "title":""}.
  */
 async function loadChartDefinitions() {
-  const chartDefinitionUrl = "chart_pages.json";
+  const chartDefinitionUrl = "chart_pages.yaml";
   const url = new URL(window.location.href);
   let pageName = url.searchParams.get("page");
   const definedPages = [];
   const response = await fetch(chartDefinitionUrl);
   if (!response.ok) {
-    throw new Error(`Unable to chart definition file ${chartPagesUrl}: ${response.status} ${response.statusText}`);
+    throw new Error(`Unable to load chart definition file ${chartDefinitionUrl}: ${response.status} ${response.statusText}`);
   }
   const contents = await response.text();
-  const chartsJson = JSON.parse(contents);
+  const chartsJson = jsyaml.load(contents);
   const chartsJsonKeys = Object.keys(chartsJson);
   if (chartsJsonKeys.length == 0) {
-    throw new Error(`The ${chartPagesUrl} definition file is empty.`);
+    throw new Error(`The ${chartDefinitionUrl} definition file is empty.`);
   }
   const firstKey = chartsJsonKeys[0];
   if (!pageName) pageName = firstKey;
