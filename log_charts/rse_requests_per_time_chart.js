@@ -2,7 +2,7 @@
   This module implements a chart to display number of requests per time period.
 */
 
-import { addTimeSliderCallBack, getSliderPosition, getRows, getTimeLabels, getTimeUnits } from './controls_handler.js';
+import { addTimeSliderCallBack, getSliderPosition, getRows, getTimeLabels, getTimeUnits, isTestingUser } from './controls_handler.js';
 
 let chartId;
 
@@ -28,9 +28,8 @@ function renderChart() {
   const rows = getRows();
   rows.forEach(row => {
     const timeKey = row[time_column]
-    const user_id = row["user_id"];
     allCountsMap.set(timeKey, (allCountsMap.get(timeKey) || 0) + 1);
-    if (["hf.test.public", "hf.test.private", "wh3248", "ad9465", "luet.princeton", "georgios.artavanis"].includes(user_id)) {
+    if (isTestingUser(row)) {
       rseCountsMap.set(timeKey, (rseCountsMap.get(timeKey) || 0) + 1);
     }
   });

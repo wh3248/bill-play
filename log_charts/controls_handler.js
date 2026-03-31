@@ -311,3 +311,16 @@ function changeSelectedChart(event) {
   const url = `.?page=${selectedValue}`;
   window.location = url;
 }
+
+/**
+ * Return true if the user in the row is a testing user.
+ * @param {Object} row - One row from log file. 
+ */
+export function isTestingUser(row) {
+    const user_id = row["user_id"];
+    if (["hf.test.public", "hf.test.private", "wh3248", "ad9465", "luet.princeton", "georgios.artavanis"].includes(user_id)) {
+      return true;
+    } else {
+      return false;
+    }
+}

@@ -2,7 +2,7 @@
   This module implements a chart to display number of duration per time period.
 */
 
-import { addTimeSliderCallBack, getSliderPosition, getRows, getTimeLabels, getTimeUnits } from './controls_handler.js';
+import { addTimeSliderCallBack, getSliderPosition, getRows, getTimeLabels, getTimeUnits, isTestingUser } from './controls_handler.js';
 
 let chartId;
 
@@ -28,12 +28,11 @@ function renderChart() {
   const rows = getRows();
   rows.forEach(row => {
     const timeKey = row[bucket];
-    const duration = parseFloat(row["duration"])
+    const duration = parseFloat(row["duration"]);
     let maxValue = allValuesMaxDurationMap.get(timeKey) || 0.0;
     maxValue = Math.max(maxValue, duration);
     allValuesMaxDurationMap.set(timeKey, maxValue);
-    const user_id = row["user_id"];
-    if (["hf.test.public", "hf.test.private", "wh3248", "ad9465", "luet.princeton", "georgios.artavanis"].includes(user_id)) {
+    if (isTestingUser(row)) {
       rseValuesMaxDurationMap.set(timeKey, maxValue);
     }
 
