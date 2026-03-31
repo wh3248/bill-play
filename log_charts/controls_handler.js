@@ -166,7 +166,6 @@ async function loadChartDefinitions() {
     const title = entry["title"] ? entry["title"] : key;
     definedPages.push({ id: key, title: title });
   }
-  console.log(definedPages);
   const result = {
     id: pageName,
     chartPage: chartPage,
@@ -281,24 +280,27 @@ function updateSliderLabels() {
 function initializeHeading(definitionId, chartPage, definedPages) {
   // Set the chart page title in the heading
   const chartTitle = chartPage.title;
-  document.getElementById("chart_title").innerHTML = chartTitle;
+  const chartTitleElement = document.getElementById("chart_title");
+  if (chartTitleElement) chartTitleElement.innerHTML = chartTitle;
 
   // Add the option values for the select_chart drop down using definedPages.
   let i;
   const selectElement = document.getElementById("select_chart");
-  for (i = 0; i < definedPages.length; i++) {
-    var entry = definedPages[i];
-    var element = document.createElement("option")
-    element.textContent = entry["title"];
-    element.value = entry["id"];
-    if (entry["id"] == definitionId) {
-      element.selected = true;
+  if (selectElement) {
+    for (i = 0; i < definedPages.length; i++) {
+      var entry = definedPages[i];
+      var element = document.createElement("option")
+      element.textContent = entry["title"];
+      element.value = entry["id"];
+      if (entry["id"] == definitionId) {
+        element.selected = true;
+      }
+      selectElement.appendChild(element);
     }
-    selectElement.appendChild(element);
-  }
 
-  // Create an event handle to respond to changes to the drop down.
-  selectElement.addEventListener("change", changeSelectedChart);
+    // Create an event handle to respond to changes to the drop down.
+    selectElement.addEventListener("change", changeSelectedChart);
+  }
 }
 
 /**
@@ -317,10 +319,35 @@ function changeSelectedChart(event) {
  * @param {Object} row - One row from log file. 
  */
 export function isTestingUser(row) {
-    const user_id = row["user_id"];
-    if (["hf.test.public", "hf.test.private", "wh3248", "ad9465", "luet.princeton", "georgios.artavanis"].includes(user_id)) {
-      return true;
-    } else {
-      return false;
-    }
+  const user_id = row["user_id"];
+  if (["hf.test.public", "hf.test.private", "wh3248", "ad9465", "luet.princeton", "georgios.artavanis"].includes(user_id)) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+export function getRowsInDateRange() {
+  const rows = getRows();
+  const [currentStartIndex, currentEndIndex] = getSliderPosition();
+  const timeLabels = getTimeLabels();
+  const timeRangeRows = timeLabels.slice(currentStartIndex, currentEndIndex + 1);
+  const startDate = new Date(timeRangeRows[0]);
+  const endDate = new Date(timeRangeRows[timeRangeRows.length - 1]);
+
+  // Ensure valid date objects are created
+  if (isNaN(startDate) || isNaN(endDate)) {
+    console.error("Invalid date format. Use Y-m-d H:M:S or Y-m-d.");
+    return [];
+  }
+
+  // Use the filter() method to create a new array with matching rows
+  const filteredRows = rows.filter(row => {
+    const rowDate = new Date(row.time);
+
+    // Compare dates using comparison operators.
+    // JavaScript internally converts Date objects to their millisecond timestamps for comparison.
+    return rowDate >= startDate && rowDate <= endDate;
+  });
+  return filteredRows;
 }

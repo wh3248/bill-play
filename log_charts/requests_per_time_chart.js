@@ -11,7 +11,6 @@ export function requestsPerTimeChart(chartIdArg) {
   addTimeSliderCallBack(renderChart);
   renderChart();
 }
-
 function renderChart() {
   const [units, time_column] = getTimeUnits();
   const timeLabels = getTimeLabels();
