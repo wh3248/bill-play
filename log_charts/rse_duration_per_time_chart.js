@@ -35,7 +35,6 @@ function renderChart() {
     if (isTestingUser(row)) {
       rseValuesMaxDurationMap.set(timeKey, maxValue);
     }
-
   });
 
   // Compute Y values for each timeLabel
