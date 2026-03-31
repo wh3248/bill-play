@@ -71,6 +71,8 @@ function renderChart() {
       title: units,
       tickangle: -45,
       automargin: true,
+      type: 'date',
+      tickformat: units === 'Day' ? '%Y-%m-%d' : undefined,
     },
     yaxis: {
       title: `Max Duration(s) for ${units}`,

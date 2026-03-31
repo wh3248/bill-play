@@ -31,7 +31,7 @@ export function initializeControlsHandler() {
         .then(data => {
           csvData = data;
           initializeHeading(definitionId, chartPage, definedPages);
-          intializeSliderHandler();
+          intializeSliders();
           updateSliderLabels();
           updateTimeRange();
           // Render charts using chartFunction of each entry
@@ -183,7 +183,7 @@ async function loadChartDefinitions() {
 /**
  * Initialize slider elements and attach event handlers.
  */
-function intializeSliderHandler() {
+function intializeSliders() {
   const allLabels = getTimeLabels();
   startSlider = document.getElementById("startSlider");
   endSlider = document.getElementById("endSlider");
@@ -196,12 +196,12 @@ function intializeSliderHandler() {
   }
   const [startIndex, endIndex] = getSliderInitialDateIndexes();
   currentStartIndex = startIndex;
-  currentEndIndex = endIndex - 1;
+  currentEndIndex = endIndex;
 
   startSlider.min = 0;
-  startSlider.max = allLabels.length - 1;
+  startSlider.max = allLabels.length;
   endSlider.min = 0;
-  endSlider.max = allLabels.length - 1;
+  endSlider.max = allLabels.length;
   startSlider.value = currentStartIndex;
   endSlider.value = currentEndIndex;
   startSlider.addEventListener('input', () => updateTimeRange(true));
