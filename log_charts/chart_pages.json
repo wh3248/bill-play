@@ -1,6 +1,6 @@
 {
-    "default": {
-        "name": "Default",
+    "requests_and_duration": {
+        "title": "Requests and Duration",
         "log_file": "cleaned_api_logs.csv",
         "charts": [
             {

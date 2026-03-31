@@ -22,11 +22,14 @@ let callBackList = [];
  * This sets up sliders, labels, and invokes initial chart rendering.
  */
 export function initializeControlsHandler() {
-  loadChartPage()
-    .then(chartPage => {
+  loadChartDefinitions()
+    .then(selectedPage => {
+      const chartPage = selectedPage.chartPage;
+      const definedPages = selectedPage.definedPages;
       loadCsv(chartPage.log_file)
         .then(data => {
           csvData = data;
+          initializeHeading(chartPage, definedPages);
           intializeSliderHandler();
           updateSliderLabels();
           updateTimeRange();
@@ -123,20 +126,32 @@ export function getRows() {
 
 
 /**
- * Load the current chart page configuration from chart_pages.json.
- * @returns {Promise<Object>} The chart page configuration object.
+ * Load the charts definition configuration from chart_pages.json.
+ * @returns {Promise<Object>} containing a json object.
+ * The returned json object has keys.
+ * "chartPage" with the definition of the entry specified in the url
+ * query parameters or requests the first entry if not specified.
+ * "otherPages" a list of other pages in the form [{"name":"", "title":""}].
+ * The other pages is used to populated the select pull to select other pages.
  */
-async function loadChartPage() {
+async function loadChartDefinitions() {
+  const chartDefinitionUrl = "chart_pages.json";
   const url = new URL(window.location.href);
-  const pageQueryParam = url.searchParams.get("page");
-  const pageName = pageQueryParam ? pageQueryParam : "default";
-  const chartPagesUrl = "chart_pages.json";
-  const response = await fetch(chartPagesUrl);
+  let pageName = url.searchParams.get("page");
+  const definedPages = [];
+  const response = await fetch(chartDefinitionUrl);
   if (!response.ok) {
     throw new Error(`Unable to chart definition file ${chartPagesUrl}: ${response.status} ${response.statusText}`);
   }
   const contents = await response.text();
   const chartsJson = JSON.parse(contents);
+  const chartsJsonKeys = Object.keys(chartsJson);
+  if (chartsJsonKeys.length == 0) {
+    throw new Error(`The ${chartPagesUrl} definition file is empty.`);
+  }
+  const firstKey = chartsJsonKeys[0];
+  if (!pageName) pageName = firstKey;
+  if (!chartsJson[pageName]) pageName = firstKey;
   const chartPage = chartsJson[pageName];
   let i;
   for (i = 0; i < chartPage.charts.length; i++) {
@@ -146,7 +161,18 @@ async function loadChartPage() {
     chart["chartFunction"] = chartFunction;
     chart["chartId"] = `chart_${i + 1}`;
   }
-  return chartPage;
+  for (i = 0; i < chartsJsonKeys.length; i++) {
+    const key = chartsJsonKeys[i];
+    const entry = chartsJson[key];
+    const title = entry["title"] ? entry["title"] : key;
+    definedPages.push({ id: key, title: title });
+  }
+  console.log(definedPages);
+  const result = {
+    chartPage: chartPage,
+    definedPages: definedPages
+  }
+  return result;
 }
 
 /**
@@ -214,6 +240,9 @@ function updateTimeRange(isStartChanged) {
   }
 }
 
+/**
+ * Update because the time bucket changed.
+ */
 function updateTimeBucket() {
   const allLabels = getTimeLabels();
   currentStartIndex = 0;
@@ -239,4 +268,13 @@ function updateSliderLabels() {
     document.getElementById("startTimeUnits").innerHTML = units;
     document.getElementById("endTimeUnits").innerHTML = units;
   }
+}
+
+/**
+ * Initialize the heading using the title from the chartPage.
+ * @param {json} chartPage the selected chart page from chart_pages.json.
+ */
+function initializeHeading(chartPage, definedPages) {
+  const chartTitle = chartPage.title;
+  document.getElementById("chart_title").innerHTML = chartTitle;
 }
