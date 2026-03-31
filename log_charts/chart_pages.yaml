@@ -10,11 +10,11 @@ requests_and_duration:
       js_function: "requestsPerTimeChart"
     - js_file: "rse_duration_per_time_chart.js"
       js_function: "durationPerTimeChart"
-second_chart:
-  title: "Second Chart"
+top10_requests:
+  title: "Top 10 Request and Bytes"
   log_file: "cleaned_api_logs.csv"
   charts:
-    - js_file: "top10_duration.js"
-      js_function: "durationTop10Report"
     - js_file: "top10_requests.js"
       js_function: "durationTop10Report"
+    - js_file: "top10_bytes.js"
+      js_function: "top10BytesReport"

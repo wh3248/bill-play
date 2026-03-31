@@ -10,7 +10,7 @@ export function durationTop10Report(chartIdArg) {
 }
 
 function renderReport() {
-    const rows = getRowsInDateRange();
+    const rows = getRowsInDateRange(true);
     if (!rows || rows.length === 0) {
         updateReportHtml('<div class="status">No rows available for report.</div>');
         return;
@@ -30,7 +30,7 @@ function renderReport() {
 
     const tableHtml = `
     <div class="report-content">
-      <h3>Top 10 Duration Rows</h3>
+      <h3>Top 10 Request Rate Rows</h3>
       <table class="report-table">
         <thead>
           <tr>

@@ -188,8 +188,9 @@ function intializeSliderHandler() {
   if (!startSlider || !endSlider || !startLabel || !endLabel) {
     throw new Error('Unable to initialize chart controls: one or more element IDs are invalid.');
   }
-  currentStartIndex = 0;
-  currentEndIndex = allLabels.length - 1;
+  const [startIndex, endIndex] = getSliderInitialDateIndexes();
+  currentStartIndex = startIndex;
+  currentEndIndex = endIndex - 1;
 
   startSlider.min = 0;
   startSlider.max = allLabels.length - 1;
@@ -204,6 +205,21 @@ function intializeSliderHandler() {
   document.getElementById("monthlyTimeBucket").addEventListener('input', () => updateTimeBucket());
 }
 
+function getSliderInitialDateIndexes() {
+  const url = new URL(window.location.href);
+  let queryStart = url.searchParams.get("start");
+  let queryEnd = url.searchParams.get("end");
+  const timeLabels = getTimeLabels();
+  if (queryStart && queryEnd) {
+    const startIndex = timeLabels.indexOf(queryStart);
+    const endIndex = timeLabels.lastIndexOf(queryEnd);
+    return [startIndex, endIndex];
+  } else {
+    return [0, timeLabels.length];
+  }
+
+
+}
 /**
  * Update the current slider selection and refresh labels/status.
  * @param {boolean} isStartChanged - Whether the start slider triggered the update.
@@ -310,7 +326,14 @@ function initializeHeading(definitionId, chartPage, definedPages) {
  */
 function changeSelectedChart(event) {
   const selectedValue = event.target.value;
-  const url = `.?page=${selectedValue}`;
+  const [currentStartIndex, currentEndIndex] = getSliderPosition();
+  const timeLabels = getTimeLabels();
+  const timeRangeRows = timeLabels.slice(currentStartIndex, currentEndIndex + 1);
+  const startDate = timeRangeRows[0];
+  const endDate = timeRangeRows[timeRangeRows.length - 1];
+
+  const url = `.?page=${selectedValue}&start=${startDate}&end=${endDate}`;
+
   window.location = url;
 }
 
@@ -327,7 +350,14 @@ export function isTestingUser(row) {
   }
 }
 
-export function getRowsInDateRange() {
+/**
+ * Return rows within the date range selected by the slider.
+ * @param {Boolean} status - flat to return success/failed rows.
+ * If status is true only return success rows.
+ * If status is false only return failed rows.
+ * If status is not provided or undefined return all rows.
+ */
+export function getRowsInDateRange(status) {
   const rows = getRows();
   const [currentStartIndex, currentEndIndex] = getSliderPosition();
   const timeLabels = getTimeLabels();
@@ -347,7 +377,13 @@ export function getRowsInDateRange() {
 
     // Compare dates using comparison operators.
     // JavaScript internally converts Date objects to their millisecond timestamps for comparison.
-    return rowDate >= startDate && rowDate <= endDate;
+    if (status == true) {
+      return row["status"] == "success" && rowDate >= startDate && rowDate <= endDate;
+    } else if (status == false) {
+      return row["status"] == "failed" && rowDate >= startDate && rowDate <= endDate;
+    } else {
+      return rowDate >= startDate && rowDate <= endDate;     
+    }
   });
   return filteredRows;
 }

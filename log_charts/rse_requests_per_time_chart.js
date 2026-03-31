@@ -63,7 +63,7 @@ function renderChart() {
       hovertemplate: '%{x}<br>Testing requests: %{y}<extra></extra>',
     },
   ], {
-    title: `Requests Rate per ${units} with Team Testing Requests`,
+    title: `# Requests per ${units} with Team Testing Requests`,
     xaxis: {
       title: units,
       tickangle: -45,

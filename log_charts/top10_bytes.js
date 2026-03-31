@@ -2,7 +2,7 @@ import { addTimeSliderCallBack, getRowsInDateRange } from './controls_handler.js
 
 let chartId;
 
-export function durationTop10Report(chartIdArg) {
+export function top10BytesReport(chartIdArg) {
     chartId = chartIdArg;
     addTimeSliderCallBack(renderReport);
 
@@ -10,14 +10,14 @@ export function durationTop10Report(chartIdArg) {
 }
 
 function renderReport() {
-    const rows = getRowsInDateRange();
+    const rows = getRowsInDateRange(true);
     if (!rows || rows.length === 0) {
         updateReportHtml('<div class="status">No rows available for report.</div>');
         return;
     }
 
     const topRows = [...rows]
-        .sort((a, b) => parseFloat(b.duration) - parseFloat(a.duration))
+        .sort((a, b) => parseFloat(b.bytes) - parseFloat(a.bytes))
         .slice(0, 10);
     const tableHeaders = ['Time', 'User', 'Duration (s)', 'Status', 'Kbytes'];
     const tableColumns = ['time', 'user_id', 'duration', 'status', 'bytes'];
@@ -30,7 +30,7 @@ function renderReport() {
 
     const tableHtml = `
     <div class="report-content">
-      <h3>Top 10 Duration Rows</h3>
+      <h3>Top 10 Bytes Requests</h3>
       <table class="report-table">
         <thead>
           <tr>
