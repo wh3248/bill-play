@@ -31,6 +31,7 @@ export function initializeControlsHandler() {
         .then(data => {
           csvData = data;
           initializeHeading(definitionId, chartPage, definedPages);
+          initializeTimeBucketOption();
           intializeSliders();
           updateSliderLabels();
           updateTimeRange();
@@ -211,6 +212,21 @@ function intializeSliders() {
   document.getElementById("monthlyTimeBucket").addEventListener('input', () => updateTimeBucket());
 }
 
+function initializeTimeBucketOption() {
+  const url = new URL(window.location.href);
+  let timeUnits = url.searchParams.get("units");
+  if (timeUnits) {
+    const timeBucketLablels = ["hourlyTimeBucket", "dailyTimeBucket", "monthlyTimeBucket"];
+    const bucketToUnitMap = {"hourlyTimeBucket": "hour", "dailyTimeBucket": "day", "monthlyTimeBucket": "month"};
+    timeBucketLablels.forEach(bucket => {
+      const id = bucketToUnitMap[bucket];
+      const element = document.getElementById(bucket);
+      if (element && id == timeUnits.toLowerCase()) {
+        element.checked = true;
+      }
+    })
+  }
+}
 function getSliderInitialDateIndexes() {
   const url = new URL(window.location.href);
   let queryStart = url.searchParams.get("start");
@@ -257,7 +273,7 @@ function updateTimeRange(isStartChanged) {
   const [units] = getTimeUnits();
   if (statusElement) {
     statusElement.textContent =
-      `Displaying ${currentEndIndex - currentStartIndex + 1} ${units}s from ${allLabels[currentStartIndex]} to ${allLabels[currentEndIndex]}.`;
+      `Displaying ${currentEndIndex - currentStartIndex} ${units}s from ${allLabels[currentStartIndex]} to ${allLabels[currentEndIndex]}.`;
   }
 }
 
@@ -332,13 +348,14 @@ function initializeHeading(definitionId, chartPage, definedPages) {
  */
 function changeSelectedChart(event) {
   const selectedValue = event.target.value;
+  const [units] = getTimeUnits();
   const [currentStartIndex, currentEndIndex] = getSliderPosition();
   const timeLabels = getTimeLabels();
   const timeRangeRows = timeLabels.slice(currentStartIndex, currentEndIndex + 1);
   const startDate = timeRangeRows[0];
   const endDate = timeRangeRows[timeRangeRows.length - 1];
 
-  const url = `.?page=${selectedValue}&start=${startDate}&end=${endDate}`;
+  const url = `.?page=${selectedValue}&start=${startDate}&end=${endDate}&units=${units}`;
 
   window.location = url;
 }
