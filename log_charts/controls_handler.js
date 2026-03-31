@@ -34,17 +34,21 @@ export function initializeControlsHandler() {
           intializeSliderHandler();
           updateSliderLabels();
           updateTimeRange();
-          chartPage.charts.forEach(element => {
-            element.chartFunction(element.chartId);
+          // Render charts using chartFunction of each entry
+          chartPage.charts.forEach(entry => {
+            entry.chartFunction(entry.chartId);
           });
         })
         .catch(error => {
-          console.error(error);
           const status = document.getElementById('status');
           status.textContent = error.message;
           status.classList.add('error');
         });
-
+    })
+    .catch(error => {
+          const status = document.getElementById('status');
+          status.textContent = error.message;
+          status.classList.add('error');
     })
 }
 
@@ -156,7 +160,9 @@ async function loadChartDefinitions() {
   for (i = 0; i < chartPage.charts.length; i++) {
     let chart = chartPage.charts[i];
     const module = await import(`./${chart.js_file}`);
+    if (!module) throw new Error(`No module '${chart.js_file}' found`);
     const chartFunction = module[chart.js_function];
+    if (!chartFunction) throw new Error(`No function '${chart.js_function} in module '${chart.js_file}'`);
     chart["chartFunction"] = chartFunction;
     chart["chartId"] = `chart_${i + 1}`;
   }
@@ -382,7 +388,7 @@ export function getRowsInDateRange(status) {
     } else if (status == false) {
       return row["status"] == "failed" && rowDate >= startDate && rowDate <= endDate;
     } else {
-      return rowDate >= startDate && rowDate <= endDate;     
+      return rowDate >= startDate && rowDate <= endDate;
     }
   });
   return filteredRows;

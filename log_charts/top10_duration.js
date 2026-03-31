@@ -1,8 +1,8 @@
-import { addTimeSliderCallBack, getRowsInDateRange, getTimeUnits} from './controls_handler.js';
+import { addTimeSliderCallBack, getRowsInDateRange } from './controls_handler.js';
 
 let chartId;
 
-export function requestsTop10Report(chartIdArg) {
+export function top10DurationReport(chartIdArg) {
     chartId = chartIdArg;
     addTimeSliderCallBack(renderReport);
 
@@ -16,29 +16,11 @@ function renderReport() {
         return;
     }
 
-    const [units, time_column] = getTimeUnits();
-    
-    const requestsMap = new Map();
-    rows.forEach(row => {
-      const timeKey = row[time_column]
-      const user_id = row["user_id"];
-      const rowKey = `${timeKey}#${user_id}`;
-      requestsMap.set(rowKey, (requestsMap.get(rowKey) || 0) + 1);
-    });
-    const mapKeys = requestsMap.keys();
-    const reportRows = [];
-    mapKeys.forEach(key => {
-      const [timeKey, user_id] = key.split("#");
-      const keyCount = requestsMap.get(key);
-      const entry = {user_id: user_id, time_key:timeKey, request_count:keyCount};
-      reportRows.push(entry)
-    })
-
-    const topRows = [...reportRows]
-        .sort((a, b) => parseFloat(b.request_count) - parseFloat(a.request_count))
+    const topRows = [...rows]
+        .sort((a, b) => parseFloat(b.duration) - parseFloat(a.duration))
         .slice(0, 10);
-    const tableHeaders = ['Time', 'User', '# Requests'];
-    const tableColumns = ['time_key', 'user_id', 'request_count'];
+    const tableHeaders = ['Time', 'User', 'Duration (s)', 'Status', 'Kbytes'];
+    const tableColumns = ['time', 'user_id', 'duration', 'status', 'bytes'];
     const tableRows = topRows
         .map(row => `
       <tr>
@@ -48,7 +30,7 @@ function renderReport() {
 
     const tableHtml = `
     <div class="report-content">
-      <h3>Top 10 # Requests</h3>
+      <h3>Top 10 Duration Requests</h3>
       <table class="report-table">
         <thead>
           <tr>
