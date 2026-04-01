@@ -47,9 +47,9 @@ export function initializeControlsHandler() {
         });
     })
     .catch(error => {
-          const status = document.getElementById('status');
-          status.textContent = error.message;
-          status.classList.add('error');
+      const status = document.getElementById('status');
+      status.textContent = error.message;
+      status.classList.add('error');
     })
 }
 
@@ -200,9 +200,9 @@ function intializeSliders() {
   currentEndIndex = endIndex;
 
   startSlider.min = 0;
-  startSlider.max = allLabels.length;
+  startSlider.max = allLabels.length-1;
   endSlider.min = 0;
-  endSlider.max = allLabels.length;
+  endSlider.max = allLabels.length-1;
   startSlider.value = currentStartIndex;
   endSlider.value = currentEndIndex;
   startSlider.addEventListener('input', () => updateTimeRange(true));
@@ -217,7 +217,7 @@ function initializeTimeBucketOption() {
   let timeUnits = url.searchParams.get("units");
   if (timeUnits) {
     const timeBucketLablels = ["hourlyTimeBucket", "dailyTimeBucket", "monthlyTimeBucket"];
-    const bucketToUnitMap = {"hourlyTimeBucket": "hour", "dailyTimeBucket": "day", "monthlyTimeBucket": "month"};
+    const bucketToUnitMap = { "hourlyTimeBucket": "hour", "dailyTimeBucket": "day", "monthlyTimeBucket": "month" };
     timeBucketLablels.forEach(bucket => {
       const id = bucketToUnitMap[bucket];
       const element = document.getElementById(bucket);
@@ -237,11 +237,12 @@ function getSliderInitialDateIndexes() {
     const endIndex = timeLabels.lastIndexOf(queryEnd);
     return [startIndex, endIndex];
   } else {
-    return [0, timeLabels.length];
+    return [0, timeLabels.length-1];
   }
 
 
 }
+
 /**
  * Update the current slider selection and refresh labels/status.
  * @param {boolean} isStartChanged - Whether the start slider triggered the update.
@@ -273,7 +274,7 @@ function updateTimeRange(isStartChanged) {
   const [units] = getTimeUnits();
   if (statusElement) {
     statusElement.textContent =
-      `Displaying ${currentEndIndex - currentStartIndex} ${units}s from ${allLabels[currentStartIndex]} to ${allLabels[currentEndIndex]}.`;
+      `Displaying ${currentEndIndex - currentStartIndex + 1} ${units}s from ${allLabels[currentStartIndex]} to ${allLabels[currentEndIndex]}.`;
   }
 }
 
@@ -361,6 +362,14 @@ function changeSelectedChart(event) {
 }
 
 /**
+ * Return true if the row is successful.
+ * @param {Object} row - One row from log file. 
+ */
+export function isSuccessRow(row) {
+  return row["status"] == "success";
+}
+
+/**
  * Return true if the user in the row is a testing user.
  * @param {Object} row - One row from log file. 
  */
@@ -384,26 +393,20 @@ export function getRowsInDateRange(status) {
   const rows = getRows();
   const [currentStartIndex, currentEndIndex] = getSliderPosition();
   const timeLabels = getTimeLabels();
-  const timeRangeRows = timeLabels.slice(currentStartIndex, currentEndIndex + 1);
-  const startDate = new Date(timeRangeRows[0]);
-  const endDate = new Date(timeRangeRows[timeRangeRows.length - 1]);
-
-  // Ensure valid date objects are created
-  if (isNaN(startDate) || isNaN(endDate)) {
-    console.error("Invalid date format. Use Y-m-d H:M:S or Y-m-d.");
-    return [];
-  }
-
+  const timeRangeRows = timeLabels.slice(currentStartIndex, currentEndIndex+1);
+  const startDate = timeRangeRows[0];
+  const endDate = timeRangeRows[timeRangeRows.length - 1];
   // Use the filter() method to create a new array with matching rows
+  const [units, time_column] = getTimeUnits()
   const filteredRows = rows.filter(row => {
-    const rowDate = new Date(row.time);
+    const rowDate = row[time_column];
 
     // Compare dates using comparison operators.
     // JavaScript internally converts Date objects to their millisecond timestamps for comparison.
     if (status == true) {
-      return row["status"] == "success" && rowDate >= startDate && rowDate <= endDate;
+      return isSuccessRow(row) && rowDate >= startDate && rowDate <= endDate;
     } else if (status == false) {
-      return row["status"] == "failed" && rowDate >= startDate && rowDate <= endDate;
+      return !isSuccessRow(row) && rowDate >= startDate && rowDate <= endDate;
     } else {
       return rowDate >= startDate && rowDate <= endDate;
     }
