@@ -304,20 +304,14 @@ function updateTimeRange(isStartChanged) {
   const newEnd = parseInt(endSlider.value, 10);
   const allLabels = getTimeLabels();
 
-  if (newStart > newEnd) {
-    if (isStartChanged) {
-      endSlider.value = newStart;
-      currentStartIndex = newStart;
-      currentEndIndex = newStart;
-      endSlider.min = newStart + 1;
-    } else {
-      startSlider.value = newEnd;
-      currentStartIndex = newEnd;
-      currentEndIndex = newEnd;
-    }
-  } else {
+  if (isStartChanged) {
+    endSlider.min = newStart;
     currentStartIndex = newStart;
+    startSlider.value = newStart;
+  } else {
+    startSlider.max = newEnd;
     currentEndIndex = newEnd;
+    endSlider.value = newEnd;
   }
 
   updateSliderLabels();
