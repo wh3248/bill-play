@@ -250,12 +250,14 @@ function getSliderInitialDateIndexes() {
 function updateTimeRange(isStartChanged) {
   const newStart = parseInt(startSlider.value, 10);
   const newEnd = parseInt(endSlider.value, 10);
+  const allLabels = getTimeLabels();
 
   if (newStart > newEnd) {
     if (isStartChanged) {
       endSlider.value = newStart;
       currentStartIndex = newStart;
       currentEndIndex = newStart;
+      endSlider.min = newStart + 1;
     } else {
       startSlider.value = newEnd;
       currentStartIndex = newEnd;
@@ -270,7 +272,6 @@ function updateTimeRange(isStartChanged) {
   callBackList.forEach(callBack => {
     callBack();
   });
-  const allLabels = getTimeLabels();
   const [units] = getTimeUnits();
   if (statusElement) {
     statusElement.textContent =

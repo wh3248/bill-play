@@ -20,3 +20,5 @@ top10_requests:
       js_function: "top10BytesReport"
     - js_file: "top10_requests.js"
       js_function: "requestsTop10Report"
+    - js_file: "top10_actions.js"
+      js_function: "actionsTop10Report"
