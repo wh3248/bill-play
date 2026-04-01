@@ -6,11 +6,20 @@ import { addTimeSliderCallBack, getSliderPosition, getRowsInDateRange, getTimeLa
 
 let chartId;
 
+/**
+ * Initialize the requests-per-time chart.
+ *
+ * @param {string|HTMLElement} chartIdArg - The target DOM element id or element for Plotly rendering.
+ */
 export function requestsPerTimeChart(chartIdArg) {
   chartId = chartIdArg;
   addTimeSliderCallBack(renderChart);
   renderChart();
 }
+
+/**
+ * Render the requests-per-time chart using the current slider range.
+ */
 function renderChart() {
   const [units, time_column] = getTimeUnits();
   const timeLabels = getTimeLabels();

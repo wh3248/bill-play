@@ -6,12 +6,22 @@ import { addTimeSliderCallBack, getSliderPosition, getRowsInDateRange, getTimeLa
 
 let chartId;
 
+/**
+ * Initialize the duration-per-time chart with team testing request details.
+ *
+ * @param {string|HTMLElement} chartIdArg - The target DOM element id or element for Plotly rendering.
+ */
 export function durationPerTimeChart(chartIdArg) {
   chartId = chartIdArg;
   addTimeSliderCallBack(renderChart);
   renderChart();
 }
 
+/**
+ * Render the duration-per-time chart using the current slider range.
+ *
+ * Computes maximum durations per bucket and includes testing request values.
+ */
 function renderChart() {
   const [units, bucket] = getTimeUnits();
   const timeLabels = getTimeLabels();

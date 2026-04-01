@@ -6,12 +6,20 @@ import { addTimeSliderCallBack, getSliderPosition, getRows, getTimeLabels, getTi
 
 let chartId;
 
+/**
+ * Initialize the duration-per-time chart.
+ *
+ * @param {string|HTMLElement} chartIdArg - The target DOM element id or element for Plotly rendering.
+ */
 export function durationPerTimeChart(chartIdArg) {
   chartId = chartIdArg;
   addTimeSliderCallBack(renderChart);
   renderChart();
 }
 
+/**
+ * Render the duration-per-time chart using the current slider range.
+ */
 function renderChart() {
   const [units, bucket] = getTimeUnits();
   const timeLabels = getTimeLabels();

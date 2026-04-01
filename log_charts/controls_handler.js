@@ -56,36 +56,41 @@ export function initializeControlsHandler() {
  * @param {object} chartPage - The object contains the chartId and chartFunctions.
  */
 async function generateCharts(chartPage) {
-
-  // Render charts using chartFunction of each entry
+  // make the chart body tags visible/invisible depending on # charts on page
+  // also assign the chartId tag to the charts depending on how many charts on page.
   const chartBodyTags = ["body-4-charts", "body-2-charts", "body-1-chart"];
   let i;
   chartBodyTags.forEach(tag => {
     const element = document.getElementById(tag);
     if (element) {
       if ((tag == "body-4-charts") && (chartPage.charts.length > 2)) {
+        // make the div to display 4 charts visible
         element.style.display = "block";
         for (i = 0; i < chartPage.charts.length; i++) {
           const chart = chartPage.charts[i];
           chart["chartId"] = `chart_${i + 1}`;
         }
       } else if ((tag == "body-2-charts") && (chartPage.charts.length == 2)) {
+        // make the div to display 2 charts visible
         element.style.display = "block";
         for (i = 0; i < chartPage.charts.length; i++) {
           const chart = chartPage.charts[i];
           chart["chartId"] = `chart_2_${i + 1}`;
         }
       } else if ((tag == "body-1-chart") && (chartPage.charts.length == 1)) {
+        // make the div to display 1 chart visible
         element.style.display = "block";
         for (i = 0; i < chartPage.charts.length; i++) {
           const chart = chartPage.charts[i];
           chart["chartId"] = `chart_1_${i + 1}`;
         }
       } else {
+        // make other chart div invisible
         element.style.display = "none";
       }
     }
   });
+
   // generate charts using chartFunction into the chartId tag
   chartPage.charts.forEach(entry => {
     entry.chartFunction(entry.chartId);

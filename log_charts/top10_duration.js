@@ -2,6 +2,11 @@ import { addTimeSliderCallBack, getRowsInDateRange } from './controls_handler.js
 
 let chartId;
 
+/**
+ * Initialize the Top 10 duration report.
+ *
+ * @param {string} chartIdArg - The DOM element id where the report should be rendered.
+ */
 export function top10DurationReport(chartIdArg) {
     chartId = chartIdArg;
     addTimeSliderCallBack(renderReport);
@@ -9,6 +14,9 @@ export function top10DurationReport(chartIdArg) {
     renderReport();
 }
 
+/**
+ * Render the Top 10 duration report.
+ */
 function renderReport() {
     const rows = getRowsInDateRange(true);
     if (!rows || rows.length === 0) {
@@ -47,6 +55,11 @@ function renderReport() {
 }
 
 function updateReportHtml(html) {
+    /**
+     * Update the report container HTML.
+     *
+     * @param {string} html - The rendered HTML to insert into the report container.
+     */
     const element = document.getElementById(chartId);
     if (!element) {
         throw new Error(`Element with ID "${chartId}" not found.`);

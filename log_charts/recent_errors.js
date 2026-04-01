@@ -1,7 +1,15 @@
+/*
+  This module implements a chart to display top 10 recent errors per time period.
+*/
 import { addTimeSliderCallBack, getRowsInDateRange, isSuccessRow } from './controls_handler.js';
 
 let chartId;
 
+/**
+ * Initialize the errorsTop10Report chart.
+ *
+ * @param {string|HTMLElement} chartIdArg - The target DOM element id or element for Plotly rendering.
+ */
 export function errorsTop10Report(chartIdArg) {
   chartId = chartIdArg;
   addTimeSliderCallBack(renderReport);
@@ -9,6 +17,9 @@ export function errorsTop10Report(chartIdArg) {
   renderReport();
 }
 
+/**
+ * Render the recent errors chart using the current slider range.
+ */
 function renderReport() {
   const rows = getRowsInDateRange();
   if (!rows || rows.length === 0) {

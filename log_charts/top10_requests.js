@@ -2,6 +2,11 @@ import { addTimeSliderCallBack, getRowsInDateRange, getTimeUnits, isSuccessRow }
 
 let chartId;
 
+/**
+ * Initialize the Top 10 requests report.
+ *
+ * @param {string} chartIdArg - The DOM element id where the report should be rendered.
+ */
 export function requestsTop10Report(chartIdArg) {
   chartId = chartIdArg;
   addTimeSliderCallBack(renderReport);
@@ -9,6 +14,9 @@ export function requestsTop10Report(chartIdArg) {
   renderReport();
 }
 
+/**
+ * Render the Top 10 requests report.
+ */
 function renderReport() {
   const rows = getRowsInDateRange();
   if (!rows || rows.length === 0) {
@@ -73,6 +81,11 @@ function renderReport() {
 }
 
 function updateReportHtml(html) {
+  /**
+   * Update the report container HTML.
+   *
+   * @param {string} html - The rendered HTML to insert into the report container.
+   */
   const element = document.getElementById(chartId);
   if (!element) {
     throw new Error(`Element with ID "${chartId}" not found.`);
