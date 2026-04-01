@@ -58,17 +58,24 @@ export function initializeControlsHandler() {
 async function generateCharts(chartPage) {
   // make the chart body tags visible/invisible depending on # charts on page
   // also assign the chartId tag to the charts depending on how many charts on page.
-  const chartBodyTags = ["body-4-charts", "body-2-charts", "body-1-chart"];
+  const chartBodyTags = ["body-4-charts", "body-3-charts", "body-2-charts", "body-1-chart"];
   let i;
   chartBodyTags.forEach(tag => {
     const element = document.getElementById(tag);
     if (element) {
-      if ((tag == "body-4-charts") && (chartPage.charts.length > 2)) {
+      if ((tag == "body-4-charts") && (chartPage.charts.length == 4)) {
         // make the div to display 4 charts visible
         element.style.display = "block";
         for (i = 0; i < chartPage.charts.length; i++) {
           const chart = chartPage.charts[i];
           chart["chartId"] = `chart_${i + 1}`;
+        }
+      } else if ((tag == "body-3-charts") && (chartPage.charts.length == 3)) {
+        // make the div to display 3 charts visible
+        element.style.display = "block";
+        for (i = 0; i < chartPage.charts.length; i++) {
+          const chart = chartPage.charts[i];
+          chart["chartId"] = `chart_3_${i + 1}`;
         }
       } else if ((tag == "body-2-charts") && (chartPage.charts.length == 2)) {
         // make the div to display 2 charts visible
