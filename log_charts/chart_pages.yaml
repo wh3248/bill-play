@@ -22,3 +22,9 @@ top10_requests:
       js_function: "requestsTop10Report"
     - js_file: "top10_actions.js"
       js_function: "actionsTop10Report"
+error_requests:
+  title: "Top 10 Errors"
+  log_file: "cleaned_api_logs.csv"
+  charts:
+    - js_file: "recent_errors.js"
+      js_function: "errorsTop10Report"

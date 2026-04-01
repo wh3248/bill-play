@@ -35,10 +35,7 @@ export function initializeControlsHandler() {
           intializeSliders();
           updateSliderLabels();
           updateTimeRange();
-          // Render charts using chartFunction of each entry
-          chartPage.charts.forEach(entry => {
-            entry.chartFunction(entry.chartId);
-          });
+          generateCharts(chartPage);
         })
         .catch(error => {
           const status = document.getElementById('status');
@@ -51,6 +48,49 @@ export function initializeControlsHandler() {
       status.textContent = error.message;
       status.classList.add('error');
     })
+}
+
+
+/**
+ * Generate all the charts defined in the chartPage load by the page load.
+ * @param {object} chartPage - The object contains the chartId and chartFunctions.
+ */
+async function generateCharts(chartPage) {
+
+  // Render charts using chartFunction of each entry
+  const chartBodyTags = ["body-4-charts", "body-2-charts", "body-1-chart"];
+  let i;
+  chartBodyTags.forEach(tag => {
+    const element = document.getElementById(tag);
+    if (element) {
+      if ((tag == "body-4-charts") && (chartPage.charts.length > 2)) {
+        element.style.display = "block";
+        for (i = 0; i < chartPage.charts.length; i++) {
+          const chart = chartPage.charts[i];
+          chart["chartId"] = `chart_${i + 1}`;
+        }
+      } else if ((tag == "body-2-charts") && (chartPage.charts.length == 2)) {
+        element.style.display = "block";
+        for (i = 0; i < chartPage.charts.length; i++) {
+          const chart = chartPage.charts[i];
+          chart["chartId"] = `chart_2_${i + 1}`;
+        }
+      } else if ((tag == "body-1-chart") && (chartPage.charts.length == 1)) {
+        element.style.display = "block";
+        for (i = 0; i < chartPage.charts.length; i++) {
+          const chart = chartPage.charts[i];
+          chart["chartId"] = `chart_1_${i + 1}`;
+        }
+      } else {
+        element.style.display = "none";
+      }
+    }
+  });
+  // generate charts using chartFunction into the chartId tag
+  chartPage.charts.forEach(entry => {
+    entry.chartFunction(entry.chartId);
+  });
+
 }
 
 /**
@@ -200,9 +240,9 @@ function intializeSliders() {
   currentEndIndex = endIndex;
 
   startSlider.min = 0;
-  startSlider.max = allLabels.length-1;
+  startSlider.max = allLabels.length - 1;
   endSlider.min = 0;
-  endSlider.max = allLabels.length-1;
+  endSlider.max = allLabels.length - 1;
   startSlider.value = currentStartIndex;
   endSlider.value = currentEndIndex;
   startSlider.addEventListener('input', () => updateTimeRange(true));
@@ -237,7 +277,7 @@ function getSliderInitialDateIndexes() {
     const endIndex = timeLabels.lastIndexOf(queryEnd);
     return [startIndex, endIndex];
   } else {
-    return [0, timeLabels.length-1];
+    return [0, timeLabels.length - 1];
   }
 
 
@@ -394,7 +434,7 @@ export function getRowsInDateRange(status) {
   const rows = getRows();
   const [currentStartIndex, currentEndIndex] = getSliderPosition();
   const timeLabels = getTimeLabels();
-  const timeRangeRows = timeLabels.slice(currentStartIndex, currentEndIndex+1);
+  const timeRangeRows = timeLabels.slice(currentStartIndex, currentEndIndex + 1);
   const startDate = timeRangeRows[0];
   const endDate = timeRangeRows[timeRangeRows.length - 1];
   // Use the filter() method to create a new array with matching rows
