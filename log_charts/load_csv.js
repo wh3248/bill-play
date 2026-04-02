@@ -23,7 +23,7 @@ export async function loadCsv(csvPath) {
   });
 
   if (result.errors && result.errors.length) {
-    console.warn('CSV parse warnings/errors:', result.errors);
+    console.log('CSV parse warnings/errors:', result.errors);
   }
 
   if (!result.data) {

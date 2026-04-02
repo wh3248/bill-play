@@ -31,7 +31,6 @@ function renderChart() {
 
     let totalUsers = 0;
     const rows = getRows();
-    console.log("total rows", rows.length);
     const totalUsersCountMap = new Map();
     rows.forEach(row => {
         totalUsers = totalUsers + 1;

@@ -34,3 +34,9 @@ users:
   charts:
     - js_file: "user_signup_per_time.js"
       js_function: "total_users_per_time"
+recent_signups:
+  title: "Recent Signups"
+  log_file: "https://hydro-dev-wh.princeton.edu/api/logs/users"
+  charts:
+    - js_file: "recent_signups.js"
+      js_function: "recentUserSignups"
