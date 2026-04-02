@@ -252,8 +252,8 @@ function intializeSliders() {
   currentEndIndex = endIndex;
 
   startSlider.min = 0;
-  startSlider.max = allLabels.length - 1;
-  endSlider.min = 0;
+  startSlider.max = endIndex;
+  endSlider.min = startIndex;
   endSlider.max = allLabels.length - 1;
   startSlider.value = currentStartIndex;
   endSlider.value = currentEndIndex;
@@ -287,7 +287,6 @@ function getSliderInitialDateIndexes() {
   const logHash = createCsvFileHash();
   const timeLabels = getTimeLabels();
   if (queryStart && queryEnd && paramLogHash == logHash) {
-    console.log("Import start/end index")
     const queryStartIndex = timeLabels.indexOf(queryStart);
     const queryEndIndex = timeLabels.indexOf(queryEnd);
     const startIndex = queryStartIndex >= 0 ? queryStartIndex : 0;
@@ -420,7 +419,7 @@ function changeSelectedChart(event) {
   const timeRangeRows = timeLabels.slice(currentStartIndex, currentEndIndex + 1);
   const startDate = timeRangeRows[0];
   const endDate = timeRangeRows[timeRangeRows.length - 1];
-  
+
   const logHash = createCsvFileHash();
   const url = `.?page=${selectedValue}&start=${startDate}&end=${endDate}&units=${units}&log_id=${logHash}`;
 
