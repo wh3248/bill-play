@@ -283,16 +283,34 @@ function getSliderInitialDateIndexes() {
   const url = new URL(window.location.href);
   let queryStart = url.searchParams.get("start");
   let queryEnd = url.searchParams.get("end");
+  let paramLogHash = url.searchParams.get("log_id");
+  const logHash = createCsvFileHash();
   const timeLabels = getTimeLabels();
-  if (queryStart && queryEnd) {
-    const startIndex = timeLabels.indexOf(queryStart);
-    const endIndex = timeLabels.lastIndexOf(queryEnd);
+  if (queryStart && queryEnd && paramLogHash == logHash) {
+    console.log("Import start/end index")
+    const queryStartIndex = timeLabels.indexOf(queryStart);
+    const queryEndIndex = timeLabels.indexOf(queryEnd);
+    const startIndex = queryStartIndex >= 0 ? queryStartIndex : 0;
+    const endIndex = queryEndIndex >= 0 ? queryEndIndex : table_labels.length - 1;
     return [startIndex, endIndex];
   } else {
     return [0, timeLabels.length - 1];
   }
+}
 
-
+function hash8(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash ^= str.charCodeAt(i);
+  }
+  return hash & 0xFF; // Ensure it stays within 8 bits (0-255)
+}
+function createCsvFileHash() {
+  if (!csvData) return "";
+  const rows = csvData["rows"];
+  if (rows.length == 0) return "";
+  const checksum = hash8(Object.keys(rows[0]).join(","));
+  return checksum;
 }
 
 /**
@@ -402,8 +420,9 @@ function changeSelectedChart(event) {
   const timeRangeRows = timeLabels.slice(currentStartIndex, currentEndIndex + 1);
   const startDate = timeRangeRows[0];
   const endDate = timeRangeRows[timeRangeRows.length - 1];
-
-  const url = `.?page=${selectedValue}&start=${startDate}&end=${endDate}&units=${units}`;
+  
+  const logHash = createCsvFileHash();
+  const url = `.?page=${selectedValue}&start=${startDate}&end=${endDate}&units=${units}&log_id=${logHash}`;
 
   window.location = url;
 }

@@ -31,6 +31,7 @@ function renderChart() {
 
     let totalUsers = 0;
     const rows = getRows();
+    console.log("USER ROWS", rows.length);
     const totalUsersCountMap = new Map();
     rows.forEach(row => {
         totalUsers = totalUsers + 1;
@@ -43,6 +44,7 @@ function renderChart() {
     slicedTimeLabels.forEach(timeLabel => {
         reportRows.push(totalUsersCountMap.get(timeLabel) || 0);
     });
+    console.log("REPORT ROWS", reportRows.length);
 
     // Draw the chart in the chartId HTML element.
     Plotly.react(chartId, [

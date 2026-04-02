@@ -1,6 +1,6 @@
 requests_and_duration:
   title: "Requests and Duration"
-  log_file: "https://hydro-dev-wh.princeton.edu/api/logs/api"
+  log_file: "https://hydrogen.princeton.edu/api/logs/api"
   charts:
     - js_file: "requests_per_time_chart.js"
       js_function: "requestsPerTimeChart"
@@ -12,7 +12,7 @@ requests_and_duration:
       js_function: "durationPerTimeChart"
 top10_requests:
   title: "Top 10 Requests"
-  log_file: "https://hydro-dev-wh.princeton.edu/api/logs/api"
+  log_file: "https://hydrogen.princeton.edu/api/logs/api"
   charts:
     - js_file: "top10_duration.js"
       js_function: "top10DurationReport"
@@ -24,19 +24,19 @@ top10_requests:
       js_function: "actionsTop10Report"
 error_requests:
   title: "Top 10 Errors"
-  log_file: "https://hydro-dev-wh.princeton.edu/api/logs/api"
+  log_file: "https://hydrogen.princeton.edu/api/logs/api"
   charts:
     - js_file: "recent_errors.js"
       js_function: "errorsTop10Report"
 users:
   title: "Number of Users"
-  log_file: "https://hydro-dev-wh.princeton.edu/api/logs/users"
+  log_file: "https://hydrogen.princeton.edu/api/logs/users"
   charts:
     - js_file: "user_signup_per_time.js"
       js_function: "total_users_per_time"
 recent_signups:
   title: "Recent Signups"
-  log_file: "https://hydro-dev-wh.princeton.edu/api/logs/users"
+  log_file: "https://hydrogen.princeton.edu/api/logs/users"
   charts:
     - js_file: "recent_signups.js"
       js_function: "recentUserSignups"
