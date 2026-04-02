@@ -183,7 +183,7 @@ export function getRows() {
 }
 
 /**
- * Load the charts definition configuration from chart_pages.yaml.
+ * Load the charts definition configuration from report_definitions.yaml.
  * @returns {Promise<Object>} containing a yaml object.
  * The returned yaml object has keys.
  *   id: The id of the entry in the definition file of selected entry.
@@ -191,19 +191,19 @@ export function getRows() {
  *   definedPages: A list of all the pages as {"name":"", "title":""}.
  */
 async function loadChartDefinitions() {
-  const chartDefinitionUrl = "chart_pages.yaml";
+  const reportDefintionsUrl = "report_definitions.yaml";
   const url = new URL(window.location.href);
   let pageName = url.searchParams.get("page");
   const definedPages = [];
-  const response = await fetch(chartDefinitionUrl);
+  const response = await fetch(reportDefintionsUrl);
   if (!response.ok) {
-    throw new Error(`Unable to load chart definition file ${chartDefinitionUrl}: ${response.status} ${response.statusText}`);
+    throw new Error(`Unable to load report definition file ${reportDefintionsUrl}: ${response.status} ${response.statusText}`);
   }
   const contents = await response.text();
   const chartsJson = jsyaml.load(contents);
   const chartsJsonKeys = Object.keys(chartsJson);
   if (chartsJsonKeys.length == 0) {
-    throw new Error(`The ${chartDefinitionUrl} definition file is empty.`);
+    throw new Error(`The ${reportDefintionsUrl} definition file is empty.`);
   }
   const firstKey = chartsJsonKeys[0];
   if (!pageName) pageName = firstKey;
